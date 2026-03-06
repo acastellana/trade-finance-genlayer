@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "product": "TradeFxSettlement",
-  "deployedAt": "2026-03-06T18:55:17.967Z",
+  "deployedAt": "2026-03-06T21:48:06.688Z",
   "benchmark": {
     "primary": "BCRP_BCB_CROSS",
     "fallback": "MARKET_AGGREGATE",
@@ -12,13 +12,13 @@
       "chainId": 84532,
       "rpc": "https://sepolia.base.org",
       "contracts": {
-        "TradeFxSettlement": "0x5231a9B232abD0d8533D7046994235baEb01696d"
+        "TradeFxSettlement": "0x2eA7b13FA67AaeB59460acC1bb054b4Cbc321413"
       }
     },
     "genLayerStudionet": {
       "rpc": "https://studio.genlayer.com/api",
       "contracts": {
-        "FxBenchmarkOracle": "0xbFb48d1085680F334E4cA7df9487A41B7Dc08c21"
+        "FxBenchmarkOracle": "0x3B8501bAcaB70dedbC6f8B8EFCB888ba66cbc73e"
       }
     }
   },
@@ -29,13 +29,13 @@
     "oracleRelayer": "0x7b9797c4c2DA625b120A27AD2c07bECB7A0E30fa"
   },
   "trade": {
-    "invoiceRef": "QC-COOP-2026-0001",
+    "invoiceRef": "QC-COOP-2026-REC",
     "invoiceAmount": "150000000000000000000000",
     "invoiceAmountHuman": "150000 BOB",
     "sourceCurrency": "BOB",
     "settlementCurrency": "PEN",
     "expectedPaymentDate": "2026-04-05",
-    "expectedPaymentDateUnix": 1775415312,
+    "expectedPaymentDateUnix": 1775425682,
     "scenario": "Bolivian quinoa cooperative (COOP-BOL-001) → Peruvian food manufacturer (PERU-MFG-001)"
   },
   "relayer": {

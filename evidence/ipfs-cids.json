@@ -1,0 +1,14 @@
+{
+  "note": "CIDv1 (base32) — pinned via local kubo node 2026-03-06 (regenerated with updated values: SGS 99.71%, BV Case#17 98.82%, BV Case#19 94.2%)",
+  "gateway": "https://dweb.link/ipfs/",
+  "files": {
+    "01_SGS_Certificate_of_Analysis.pdf":         "bafkreibc3s4pobkn7hvtepbqw6nmtixbkmg5rsf5yxilxzd6n7meu6care",
+    "02_SGS_PreShipment_Inspection.pdf":           "bafkreifmfahocee77qkr2vchcxqpe3qb5o2t4mjmm6mzva6syfegz7wwtq",
+    "03_COSCO_Bill_of_Lading.pdf":                 "bafkreihpfxnomtxf2rulwvbvwpmaoao3i7qlk4v27hlyprwatm22clsw2i",
+    "04_BureauVeritas_Lab_Analysis.pdf":           "bafkreibicpbsdaspjwelpxpwfslhkhkw6acprwrgsrafrg5ihl5z2x3vhy",
+    "05_Arrival_Inspection_Report.pdf":            "bafkreiaon3t6ospd6mhfiklr6b6fzhzypb2fnyhydrwl3utbo2lqw3coci",
+    "06_Formal_Rejection_Notice.pdf":              "bafkreiefh7dfhqddz7kdnefq645obvgdvmgc3q6qtlrhi5gxsiursrtdde",
+    "07_Purchase_Contract_Excerpt.pdf":            "bafkreigsfaoqgna5imbrgdohi5m76f6ttquyu5mi23v5ncj7tdmzzf47ba",
+    "08_BureauVeritas_Lab_Analysis_Case19.pdf":    "bafkreihggt75z4t3byr7ixzhcitguylyfdm76akxbpistizz4vhsls3bn4"
+  }
+}

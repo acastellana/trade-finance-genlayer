@@ -1,0 +1,83 @@
+{
+  "tokens": {
+    "mockBOB": "0xbd0ed9bc00b4dc90096bc3af7b3eb1080b4bc166",
+    "mockPEN": "0x08bc87f6511913caa4e127c5e4e91618a37a9719"
+  },
+  "scenario1": {
+    "label": "Standard Settlement",
+    "ref": "QC-S1-STANDARD",
+    "contract": "0xf52895dc5899ddefa0d9a0e55454323438bfed8a",
+    "settlementToken": "0x08bc87f6511913caa4e127c5e4e91618a37a9719",
+    "invoiceBOB": "150,000",
+    "rate": "0.493",
+    "settlementPEN": "73950",
+    "txs": {
+      "deploy": "0x5e308651c5a7728c9e3020a7695efefcea3b708b19ec696ee77e45570456cdfd",
+      "requestRateLock": "0x62ce0fe247f69747fa1fd75c7b701e75bc81a4071b04885b6e09226869ce29e9",
+      "rateLock": "0x94b59d2de04cd439ca74312b0f66a0e48d5c069c4e3f9cc206c3e0a36706982c",
+      "approve": "0x0fdf3d6b5d8dd7b5c9b18e2ee3ba48cf8b6cc46c9325fa52d5c83930960d201b",
+      "fund": "0x9d6aac7295874d2e08a196fb0409a5cfa2f772616f63e6de759422155ac4dacc",
+      "settle": "0x3a495a75fbf99097e1d3087720524930f3905cff04efe2fa3de1195499d6a244"
+    },
+    "finalStatus": "SETTLED"
+  },
+  "scenario2": {
+    "label": "Partial Shipment",
+    "ref": "QC-S2-PARTIAL",
+    "contract": "0xb311af27132e743b8f3b1816237ecafc485721fb",
+    "settlementToken": "0x08bc87f6511913caa4e127c5e4e91618a37a9719",
+    "invoiceBOB": "150,000 \u2192 135,000 (90%)",
+    "rate": "0.493",
+    "originalSettlementPEN": "73950",
+    "actualSettlementPEN": "66555",
+    "txs": {
+      "deploy": "0xd1d34ca732c9e04361c941c27f4e4f553f080fed1c8f849049acbf60a3e614b1",
+      "requestRateLock": "see deploy tx",
+      "rateLock": "0xab0d673c750e2c45704e74ab9eab4b52bda43e924ed0cef13a8d3e4b9eaa7a2d",
+      "resize": "0xbb610dae44b9667f9b4c00864e7d7f019be96551de0c0f6534568ab286c00214"
+    },
+    "finalStatus": "SETTLED"
+  },
+  "scenario3": {
+    "label": "Date Roll",
+    "ref": "QC-S3-ROLL",
+    "contract": "0x0ef29010029ca32abcebdbbecd597856a3219fa2",
+    "settlementToken": "0x08bc87f6511913caa4e127c5e4e91618a37a9719",
+    "invoiceBOB": "150,000",
+    "originalDue": "2026-04-05",
+    "rolledDue": "2026-05-05",
+    "rateAtLock": "0.493",
+    "rateAtRoll": "0.493",
+    "settlementPEN": "73950",
+    "txs": {
+      "deploy": "0x708942b713411282e05f502b17da248b41cf1b4b765ec3417eff0a258970d0d0",
+      "requestRateLock": "existing",
+      "rateLock": "existing",
+      "requestRoll": "existing",
+      "rollDelivered": "0x39c2cc6d15a733c180bc3ffc77c195ce135ad111a39752eacff2bd7054815fff",
+      "approve": "0xa8e9a5183c11885285e37a97dd2ee10a0231d4bc42f3aeb786189ed9de6f248f",
+      "fund": "0x2719f8c8cc7e1015b5f5ca15efa1ddd4f10603130f18131f15df3617ace49be2",
+      "settle": "0x8efc228902c97cfa4d41252a1864dbdeae03113b629ee2597cafbde8df6a5bc9"
+    },
+    "finalStatus": "SETTLED"
+  },
+  "scenario4": {
+    "label": "Cancel & Refund",
+    "ref": "QC-S4-CANCEL",
+    "contract": "0xe83fa2be80321bfb9457f87cae552c020ee0846c",
+    "settlementToken": "0x08bc87f6511913caa4e127c5e4e91618a37a9719",
+    "invoiceBOB": "150,000",
+    "rate": "0.493",
+    "fundedPEN": "73950",
+    "refundedPEN": "73950",
+    "txs": {
+      "deploy": "0x3c9ed7f2db0be3da31c2d31e68db061ccb30f994861db2ce671a9fbae2d47a36",
+      "requestRateLock": "0x0552dde36fa913cf4e1aa39254011a7e480464a22f88854279476fc71e8bf37c",
+      "rateLock": "0x53acada9880ada1672477f12be3f4e5fd8daef274b31b805cb6d22d8c67c1966",
+      "approve": "0xc08897861e7a0325a503babf696e250d51bf6ff31b91031734a00e23c899a528",
+      "fund": "0xc64cafa1153b6bc47d435af5d5cdf79d2d00affcc8727f9131d3ac08c5813c13",
+      "cancel": "0x0ea0751c112a8dfe52554d83434d624f0ad10a75d0f1db6f694050648214d8f9"
+    },
+    "finalStatus": "CANCELLED"
+  }
+}

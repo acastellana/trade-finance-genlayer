@@ -1,0 +1,16 @@
+{
+  "gateway": "https://gateway.pinata.cloud/ipfs/",
+  "fallback": "https://ipfs.io/ipfs/",
+  "files": {
+    "01_SGS_Certificate_of_Analysis.pdf": "QmQKFAwf9JkZ7dohnxMeuyNYvhcA4aCR7Dxv85aaF8EDbe",
+    "02_SGS_PreShipment_Inspection.pdf":  "QmeRAiUN6eT4GHVhEatDuwEMQCDNQA6JL1tfspfSLDnncW",
+    "03_COSCO_Bill_of_Lading.pdf":        "QmV96ozoFnPBdo8rxftGb17JzyoTv4Pm4Cy29dTVpgE8hY",
+    "04_BureauVeritas_Lab_Analysis.pdf":  "QmSMrxdXpSCqNHu4hYPsh7AvguehYha5odjG9REuqczeH4",
+    "05_Arrival_Inspection_Report.pdf":   "QmQKhDwoc7bM68g7VLJUhvHGDktzHG5AEkJdwdF4snDnXr",
+    "06_Formal_Rejection_Notice.pdf":     "QmXzcz2FF9fRBqfr5qUrEfsk83wFsRrSLTQEtJwXF41Uqv",
+    "07_Purchase_Contract_Excerpt.pdf":   "QmRde7wD1SSuv6AYtaNvHUVA45suCdjAFTJr4jFNwiUBUJ",
+    "08_BureauVeritas_Lab_Analysis_Case19.pdf": "QmYcxo9BcCAv6oRR4piKNsBLhLwVNUuZbeGrMSBzkaT2xd",
+    "01_SGS_Certificate_of_Analysis.jpg": "QmRvPaAGqZa728vYpMoE9kWj5kbmcLv4uCx91GotpWAPw5",
+    "04_BureauVeritas_Lab_Analysis.jpg":  "QmTnEB2g66cUAUaHZLackQ1MKL4z1d9YwjHyi1HqE34CFH"
+  }
+}

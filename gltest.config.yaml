@@ -1,0 +1,9 @@
+networks:
+  default: localnet
+  localnet:
+    leader_only: true
+  studionet:
+    leader_only: true
+paths:
+  contracts: "contracts"
+  artifacts: "artifacts"

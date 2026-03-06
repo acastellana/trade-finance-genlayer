@@ -36,6 +36,7 @@ contract DeployTradeFx is Script {
 
         // ── Optional ────────────────────────────────────────────────────────
         address admin        = vm.envOr("ADMIN_ADDR",  address(0));  // 0 → deployer
+        address tokenAddr    = vm.envOr("SETTLEMENT_TOKEN", address(0));
         uint256 invoiceAmt   = vm.envOr("INVOICE_BOB", uint256(150_000e18));
         string  memory ref   = vm.envOr("INVOICE_REF", string("QC-COOP-2026-0001"));
         uint256 dueDate      = vm.envOr("DUE_DATE_UNIX", block.timestamp + 30 days);
@@ -52,6 +53,7 @@ contract DeployTradeFx is Script {
             importer,
             relayer,   // oracleRelayer — explicitly set, matches RELAYER_KEY wallet
             admin,
+            tokenAddr, // settlementToken (MockPEN)
             invoiceAmt,
             srcCcy,
             stlCcy,
