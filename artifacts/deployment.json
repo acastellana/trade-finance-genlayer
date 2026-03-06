@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "product": "TradeFxSettlement",
+  "deployedAt": "2026-03-06T18:55:17.967Z",
+  "benchmark": {
+    "primary": "BCRP_BCB_CROSS",
+    "fallback": "MARKET_AGGREGATE",
+    "description": "BOB/PEN = BCRP PEN/USD (series PD04638PD) / BCB 6.96 BOB/USD peg"
+  },
+  "network": {
+    "baseSepolia": {
+      "chainId": 84532,
+      "rpc": "https://sepolia.base.org",
+      "contracts": {
+        "TradeFxSettlement": "0x5231a9B232abD0d8533D7046994235baEb01696d"
+      }
+    },
+    "genLayerStudionet": {
+      "rpc": "https://studio.genlayer.com/api",
+      "contracts": {
+        "FxBenchmarkOracle": "0xbFb48d1085680F334E4cA7df9487A41B7Dc08c21"
+      }
+    }
+  },
+  "roles": {
+    "deployer": "0xe9630ba0e3cc2d3BFC58fbE1Bbde478f06E4CE87",
+    "exporter": "0xe9630ba0e3cc2d3BFC58fbE1Bbde478f06E4CE87",
+    "importer": "0x942C20d078f7417aD67E96714310DA8068850B77",
+    "oracleRelayer": "0x7b9797c4c2DA625b120A27AD2c07bECB7A0E30fa"
+  },
+  "trade": {
+    "invoiceRef": "QC-COOP-2026-0001",
+    "invoiceAmount": "150000000000000000000000",
+    "invoiceAmountHuman": "150000 BOB",
+    "sourceCurrency": "BOB",
+    "settlementCurrency": "PEN",
+    "expectedPaymentDate": "2026-04-05",
+    "expectedPaymentDateUnix": 1775415312,
+    "scenario": "Bolivian quinoa cooperative (COOP-BOL-001) → Peruvian food manufacturer (PERU-MFG-001)"
+  },
+  "relayer": {
+    "command": "node scripts/fx-settlement-relayer.mjs watch <tradeAddress>",
+    "requiredEnv": [
+      "GL_PRIVATE_KEY",
+      "RELAYER_KEY",
+      "GL_ORACLE_ADDRESS",
+      "TRADE_ADDRESS"
+    ],
+    "pollIntervalMs": 30000
+  }
+}

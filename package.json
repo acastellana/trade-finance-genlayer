@@ -1,0 +1,18 @@
+{
+  "name": "trade-finance-genlayer",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "deploy": "node scripts/deploy-trade-fx.mjs",
+    "deploy:dry-run": "node scripts/deploy-trade-fx.mjs --dry-run",
+    "relayer:watch": "node scripts/fx-settlement-relayer.mjs watch",
+    "relayer:lock": "node scripts/fx-settlement-relayer.mjs lock",
+    "relayer:roll": "node scripts/fx-settlement-relayer.mjs roll",
+    "relayer:status": "node scripts/fx-settlement-relayer.mjs status",
+    "deploy:legacy": "node scripts/deploy-and-run.mjs",
+    "test": "genlayer-test"
+  },
+  "dependencies": {
+    "genlayer-js": "latest"
+  }
+}
