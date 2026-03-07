@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
- * @title TradeFxSettlement v2
+ * @title TradeFxSettlement v3
  * @notice Benchmark-based FX settlement engine with token settlement rail.
  *
  * Lifecycle:
@@ -15,41 +15,60 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  *
  *   Any non-SETTLED state → CANCELLED (with refund if funded)
  *
- * Resize (partial shipment): callable from RATE_LOCKED or ROLLED.
- * Preserves locked rate; recomputes settlement amount. Status unchanged.
+ * Shipment check (inline exception branch):
+ *   FUNDED → acceptShipment() → settle()
+ *   FUNDED → contestShipment() → [InternetCourt evaluates] →
+ *     resolveShipmentVerdict(TIMELY)      → finalizeAfterShipment()
+ *     resolveShipmentVerdict(LATE)        → auto cancelAndRefund
+ *     resolveShipmentVerdict(UNDETERMINED) → resolveManualReview(arbitrator)
  *
- * Exception side channel: orthogonal bool flags; do not change status.
- * Admin can pause lifecycle via exceptionPaused.
+ * Contest deadline:
+ *   contestShipment() reverts after contestDeadline.
+ *   acceptShipment() is callable by anyone (not just importer) after contestDeadline,
+ *   allowing either party to unblock settlement if the importer does not act.
+ *
+ * Verdict source:
+ *   resolveShipmentVerdict() is callable by courtContract (the deployed GenLayer
+ *   ShipmentDeadlineCourt address, relayed by the oracle relayer) OR by oracleRelayer
+ *   directly (testnet fallback). Use setCourtContract() to wire the production court.
+ *
+ * Manual review escape hatch:
+ *   When verdict is UNDETERMINED, the designated arbitrator calls
+ *   resolveManualReview(timeliness, reason) to deliver a binding human finding.
+ *   If contestDeadline + MANUAL_REVIEW_WINDOW elapses, anyone can call
+ *   timeoutManualReview() to default to LATE (importer bears evidence burden).
  */
 contract TradeFxSettlement {
     using SafeERC20 for IERC20;
 
+    uint256 public constant MANUAL_REVIEW_WINDOW = 14 days;
+
     // ─── Status ───────────────────────────────────────────────────────────────
 
     enum Status {
-        DRAFT,          // 0 — created, rate not yet requested
-        RATE_PENDING,   // 1 — rate lock requested, awaiting oracle
-        RATE_LOCKED,    // 2 — rate locked, settlement amount fixed, awaiting funding
-        FUNDED,         // 3 — importer has deposited settlement tokens
-        ROLL_PENDING,   // 4 — roll requested, awaiting oracle
-        ROLLED,         // 5 — roll delivered, awaiting funding or settlement
-        SETTLED,        // 6 — settlement tokens transferred to exporter
-        CANCELLED       // 7 — cancelled; funded amount returned to importer
+        DRAFT,          // 0
+        RATE_PENDING,   // 1
+        RATE_LOCKED,    // 2
+        FUNDED,         // 3
+        ROLL_PENDING,   // 4
+        ROLLED,         // 5
+        SETTLED,        // 6
+        CANCELLED       // 7
     }
 
     // ─── Data structures ─────────────────────────────────────────────────────
 
     struct RateInfo {
-        uint256 rate;           // settlement per source unit, scaled 1e18
-        bytes32 benchmarkType;  // e.g. bytes32("MARKET_AGGREGATE")
-        bytes32 benchmarkId;    // unique rate observation ID
+        uint256 rate;
+        bytes32 benchmarkType;
+        bytes32 benchmarkId;
         uint256 asOfTimestamp;
     }
 
     struct RollRecord {
         uint256 priorRate;
         uint256 rolledRate;
-        uint256 rollCost;       // 0 = spot re-lock (no forward points)
+        uint256 rollCost;
         uint256 priorDueDate;
         uint256 newDueDate;
         bytes32 benchmarkId;
@@ -63,34 +82,48 @@ contract TradeFxSettlement {
     address public oracleRelayer;
     address public admin;
 
+    /// @notice Address of the deployed GenLayer ShipmentDeadlineCourt contract.
+    ///         Set via setCourtContract(). When non-zero, resolveShipmentVerdict
+    ///         accepts calls from this address. The relayer remains a fallback for testnet.
+    address public courtContract;
+
+    /// @notice Designated human arbitrator for UNDETERMINED verdicts.
+    ///         Defaults to admin. Can be updated via setArbitrator().
+    address public arbitrator;
+
     // ─── Settlement token ─────────────────────────────────────────────────────
 
-    IERC20 public settlementToken;   // MockPEN — the token importer funds and exporter receives
+    IERC20 public settlementToken;
 
     // ─── Invoice ─────────────────────────────────────────────────────────────
 
-    uint256 public invoiceAmount;       // original invoice, source currency, 1e18
-    bytes32 public sourceCurrency;      // keccak256("BOB")
-    bytes32 public settlementCurrency;  // keccak256("PEN")
+    uint256 public invoiceAmount;
+    bytes32 public sourceCurrency;
+    bytes32 public settlementCurrency;
     string  public invoiceRef;
 
     // ─── Rate & settlement ───────────────────────────────────────────────────
 
     RateInfo public lockedRate;
-    uint256  public settlementAmount;   // PEN required, recomputed on resize/roll, 1e18
+    uint256  public settlementAmount;
 
-    // ─── Notional (resize) ───────────────────────────────────────────────────
+    // ─── Notional ────────────────────────────────────────────────────────────
 
-    uint256 public currentNotional;     // BOB notional after any resizes, 1e18
-    uint256 public fulfilledBps;        // basis points fulfilled (10000 = 100%)
+    uint256 public currentNotional;
+    uint256 public fulfilledBps;
 
     // ─── Funding ─────────────────────────────────────────────────────────────
 
-    uint256 public fundedAmount;        // MockPEN held in contract right now
+    uint256 public fundedAmount;
 
     // ─── Timing ──────────────────────────────────────────────────────────────
 
     uint256 public currentDueDate;
+
+    /// @notice Deadline after which contestShipment() is rejected.
+    ///         Set to dueDate + 30 days at deployment.
+    ///         After this deadline, anyone (not just the importer) can call acceptShipment().
+    uint256 public contestDeadline;
 
     // ─── Roll history ────────────────────────────────────────────────────────
 
@@ -113,11 +146,11 @@ contract TradeFxSettlement {
 
     enum ShipmentStatus {
         NONE,           // 0 — not yet reviewed
-        ACCEPTED,       // 1 — importer accepted shipment as timely
-        CONTESTED,      // 2 — importer contested; court case in progress
-        TIMELY,         // 3 — verdict TRUE: shipment was on time
-        LATE,           // 4 — verdict FALSE: shipment was late
-        UNDETERMINED    // 5 — verdict UNDETERMINED: insufficient evidence
+        ACCEPTED,       // 1 — accepted as timely (importer or auto-accept after deadline)
+        CONTESTED,      // 2 — court case in progress
+        TIMELY,         // 3 — verdict TRUE
+        LATE,           // 4 — verdict FALSE
+        UNDETERMINED    // 5 — insufficient evidence; escalated to arbitrator
     }
 
     ShipmentStatus public shipmentStatus;
@@ -133,37 +166,35 @@ contract TradeFxSettlement {
 
     event TradeCreated(address indexed exporter, address indexed importer,
         uint256 invoiceAmount, uint256 dueDate, string invoiceRef);
-
     event RateLockRequested(address indexed requester, uint256 timestamp);
-
     event RateLocked(uint256 rate, bytes32 benchmarkType, bytes32 benchmarkId,
         uint256 asOfTimestamp, uint256 settlementAmount);
-
     event NotionalResized(uint256 oldNotional, uint256 newNotional,
         uint256 newSettlementAmount, uint256 fulfilledBps);
-
     event RollRequested(address indexed requester,
         uint256 currentDueDate, uint256 requestedNewDueDate, uint256 timestamp);
-
     event RateRolled(uint256 priorRate, uint256 rolledRate, uint256 rollCost,
         uint256 oldDueDate, uint256 newDueDate, bytes32 benchmarkId, uint256 asOfTimestamp);
-
     event Funded(address indexed funder, uint256 amount, uint256 timestamp);
-
     event Settled(address indexed exporter, uint256 amount, uint256 timestamp);
-
     event Cancelled(uint8 reasonCode, address indexed by,
         uint256 refundAmount, address indexed refundTo);
-
     event ExceptionFlagged(uint8 reasonCode, bytes32 evidenceRef, address indexed flagger);
     event ExceptionPauseSet(bool paused, address indexed by);
 
     // Shipment dispute events
-    event ShipmentAccepted(address indexed byImporter, uint256 timestamp);
-    event ShipmentContested(address indexed contestant, string manifestCid, string statement, uint256 timestamp);
-    event ShipmentVerdictReceived(uint8 verdict, string caseId, string reasonSummary, address indexed deliveredBy, uint256 timestamp);
+    event ShipmentAccepted(address indexed by, bool afterDeadline, uint256 timestamp);
+    event ShipmentContested(address indexed contestant, string manifestCid,
+        string statement, uint256 contestDeadline, uint256 timestamp);
+    event ShipmentVerdictReceived(uint8 verdict, string caseId, string reasonSummary,
+        address indexed deliveredBy, bool fromCourtContract, uint256 timestamp);
     event SettlementCancelledByVerdict(address indexed importer, uint256 refundAmount);
-    event SettlementManualReview(string caseId, uint256 timestamp);
+    event SettlementManualReview(string caseId, uint256 reviewDeadline, uint256 timestamp);
+    event ManualReviewResolved(address indexed arbitrator, bool timeliness,
+        string reason, uint256 timestamp);
+    event ManualReviewTimedOut(address indexed caller, uint256 timestamp);
+    event CourtContractSet(address indexed courtContract, address indexed by);
+    event ArbitratorSet(address indexed arbitrator, address indexed by);
 
     // ─── Modifiers ───────────────────────────────────────────────────────────
 
@@ -171,6 +202,7 @@ contract TradeFxSettlement {
     modifier onlyImporter()  { require(msg.sender == importer,      "TFX: not importer");  _; }
     modifier onlyRelayer()   { require(msg.sender == oracleRelayer, "TFX: not relayer");   _; }
     modifier onlyAdmin()     { require(msg.sender == admin,         "TFX: not admin");     _; }
+    modifier onlyArbitrator(){ require(msg.sender == arbitrator,    "TFX: not arbitrator"); _; }
 
     modifier onlyParty() {
         require(msg.sender == exporter || msg.sender == importer, "TFX: not a party");
@@ -184,27 +216,30 @@ contract TradeFxSettlement {
         _;
     }
 
-    modifier notPaused()  { require(!exceptionPaused, "TFX: paused by exception"); _; }
+    /// @dev Verdict delivery: accept from the registered GenLayer court contract
+    ///      OR from the oracle relayer (testnet fallback when court not yet wired).
+    modifier onlyVerdictSource() {
+        require(
+            msg.sender == oracleRelayer ||
+            (courtContract != address(0) && msg.sender == courtContract),
+            "TFX: not verdict source"
+        );
+        _;
+    }
+
+    modifier notPaused()   { require(!exceptionPaused, "TFX: paused by exception"); _; }
     modifier notTerminal() {
         require(status != Status.SETTLED && status != Status.CANCELLED, "TFX: terminal state");
         _;
     }
     modifier inStatus(Status s) { require(status == s, "TFX: invalid state"); _; }
 
+    function _inStatus(Status s) internal view {
+        require(status == s, "TFX: invalid state");
+    }
+
     // ─── Constructor ─────────────────────────────────────────────────────────
 
-    /**
-     * @param _exporter           Exporter wallet
-     * @param _importer           Importer wallet
-     * @param _oracleRelayer      Relayer wallet (only one that can deliver rates)
-     * @param _admin              Admin (0x0 = deployer)
-     * @param _settlementToken    MockPEN token address
-     * @param _invoiceAmount      Invoice BOB amount, 1e18
-     * @param _sourceCurrency     keccak256("BOB")
-     * @param _settlementCurrency keccak256("PEN")
-     * @param _dueDate            Unix timestamp
-     * @param _invoiceRef         Invoice reference string
-     */
     constructor(
         address _exporter,
         address _importer,
@@ -217,29 +252,50 @@ contract TradeFxSettlement {
         uint256 _dueDate,
         string memory _invoiceRef
     ) {
-        require(_exporter != address(0),       "TFX: zero exporter");
-        require(_importer != address(0),       "TFX: zero importer");
-        require(_oracleRelayer != address(0),  "TFX: zero relayer");
-        require(_settlementToken != address(0),"TFX: zero token");
-        require(_invoiceAmount > 0,            "TFX: zero invoice");
-        require(_dueDate > block.timestamp,    "TFX: due date in past");
+        require(_exporter != address(0),        "TFX: zero exporter");
+        require(_importer != address(0),        "TFX: zero importer");
+        require(_oracleRelayer != address(0),   "TFX: zero relayer");
+        require(_settlementToken != address(0), "TFX: zero token");
+        require(_invoiceAmount > 0,             "TFX: zero invoice");
+        require(_dueDate > block.timestamp,     "TFX: due date in past");
 
-        exporter          = _exporter;
-        importer          = _importer;
-        oracleRelayer     = _oracleRelayer;
-        admin             = _admin != address(0) ? _admin : msg.sender;
-        settlementToken   = IERC20(_settlementToken);
+        exporter           = _exporter;
+        importer           = _importer;
+        oracleRelayer      = _oracleRelayer;
+        admin              = _admin != address(0) ? _admin : msg.sender;
+        arbitrator         = _admin != address(0) ? _admin : msg.sender;
+        settlementToken    = IERC20(_settlementToken);
 
-        invoiceAmount     = _invoiceAmount;
-        currentNotional   = _invoiceAmount;
-        sourceCurrency    = _sourceCurrency;
+        invoiceAmount      = _invoiceAmount;
+        currentNotional    = _invoiceAmount;
+        sourceCurrency     = _sourceCurrency;
         settlementCurrency = _settlementCurrency;
-        currentDueDate    = _dueDate;
-        invoiceRef        = _invoiceRef;
-        fulfilledBps      = 10_000;
-        status            = Status.DRAFT;
+        currentDueDate     = _dueDate;
+        invoiceRef         = _invoiceRef;
+        fulfilledBps       = 10_000;
+        status             = Status.DRAFT;
+
+        // Contest window: 30 days after due date
+        contestDeadline    = _dueDate + 30 days;
 
         emit TradeCreated(_exporter, _importer, _invoiceAmount, _dueDate, _invoiceRef);
+    }
+
+    // ─── Admin setters ────────────────────────────────────────────────────────
+
+    /// @notice Wire the GenLayer ShipmentDeadlineCourt contract address.
+    ///         Once set, verdicts must come from this address (relayer remains fallback).
+    function setCourtContract(address _court) external onlyAdmin {
+        require(_court != address(0), "TFX: zero court");
+        courtContract = _court;
+        emit CourtContractSet(_court, msg.sender);
+    }
+
+    /// @notice Update the arbitrator for UNDETERMINED manual reviews.
+    function setArbitrator(address _arb) external onlyAdmin {
+        require(_arb != address(0), "TFX: zero arbitrator");
+        arbitrator = _arb;
+        emit ArbitratorSet(_arb, msg.sender);
     }
 
     // ─── Rate lock ────────────────────────────────────────────────────────────
@@ -266,18 +322,9 @@ contract TradeFxSettlement {
         emit RateLocked(rate, benchmarkType, benchmarkId, asOfTimestamp, settlementAmount);
     }
 
-    // ─── Resize (partial shipment) ────────────────────────────────────────────
+    // ─── Resize ───────────────────────────────────────────────────────────────
 
-    /**
-     * @notice Reduce invoice notional due to partial shipment.
-     *         Locked rate is preserved — only the amount changes.
-     *         Call from RATE_LOCKED or ROLLED (before funding).
-     *
-     * @param newFulfilledBps  Basis points of original invoice fulfilled (1-9999)
-     */
-    function resize(uint256 newFulfilledBps)
-        external onlyExporter notPaused
-    {
+    function resize(uint256 newFulfilledBps) external onlyExporter notPaused {
         require(
             status == Status.RATE_LOCKED || status == Status.ROLLED,
             "TFX: resize only before funding"
@@ -289,20 +336,12 @@ contract TradeFxSettlement {
         currentNotional  = (invoiceAmount * newFulfilledBps) / 10_000;
         fulfilledBps     = newFulfilledBps;
         settlementAmount = _computeSettlement(currentNotional, lockedRate.rate);
-
         emit NotionalResized(oldNotional, currentNotional, settlementAmount, newFulfilledBps);
     }
 
     // ─── Funding ──────────────────────────────────────────────────────────────
 
-    /**
-     * @notice Importer deposits exactly settlementAmount of MockPEN.
-     *         Transitions RATE_LOCKED or ROLLED → FUNDED.
-     *         Importer must approve this contract before calling.
-     */
-    function fundSettlement()
-        external onlyImporter notPaused
-    {
+    function fundSettlement() external onlyImporter notPaused {
         require(
             status == Status.RATE_LOCKED || status == Status.ROLLED,
             "TFX: cannot fund in current state"
@@ -312,19 +351,12 @@ contract TradeFxSettlement {
         fundedAmount = settlementAmount;
         settlementToken.safeTransferFrom(msg.sender, address(this), settlementAmount);
         status = Status.FUNDED;
-
         emit Funded(msg.sender, settlementAmount, block.timestamp);
     }
 
     // ─── Roll ─────────────────────────────────────────────────────────────────
 
-    /**
-     * @notice Request a date extension. Callable from RATE_LOCKED or ROLLED.
-     *         If FUNDED, funding remains; settlement amount may change on delivery.
-     */
-    function requestRoll(uint256 newDueDate)
-        external onlyParty notPaused
-    {
+    function requestRoll(uint256 newDueDate) external onlyParty notPaused {
         require(
             status == Status.RATE_LOCKED ||
             status == Status.ROLLED      ||
@@ -363,54 +395,35 @@ contract TradeFxSettlement {
         emit RateRolled(lockedRate.rate, newRate, rollCost,
             currentDueDate, newDueDate, benchmarkId, asOfTimestamp);
 
-        lockedRate.rate         = newRate;
-        lockedRate.benchmarkId  = benchmarkId;
+        lockedRate.rate          = newRate;
+        lockedRate.benchmarkId   = benchmarkId;
         lockedRate.asOfTimestamp = asOfTimestamp;
-        currentDueDate          = newDueDate;
+        currentDueDate           = newDueDate;
         rollCount++;
-
-        settlementAmount = _computeSettlement(currentNotional, newRate);
-        // If previously funded, tokens remain; importer may need to top up
-        // (out of scope for v2 — same rate in demo scenarios)
-        status = Status.ROLLED;
+        settlementAmount         = _computeSettlement(currentNotional, newRate);
+        status                   = Status.ROLLED;
     }
 
     // ─── Settle ───────────────────────────────────────────────────────────────
 
-    /**
-     * @notice Transfer settlement tokens to exporter. Callable by either party.
-     *         Transitions FUNDED → SETTLED.
-     */
-    function settle()
-        external onlyParty notPaused inStatus(Status.FUNDED)
-    {
+    function settle() external onlyParty notPaused inStatus(Status.FUNDED) {
         uint256 amount = fundedAmount;
         fundedAmount = 0;
         status = Status.SETTLED;
-
         settlementToken.safeTransfer(exporter, amount);
-
         emit Settled(exporter, amount, block.timestamp);
     }
 
     // ─── Cancel & refund ──────────────────────────────────────────────────────
 
-    /**
-     * @notice Cancel the trade. If funded, returns MockPEN to importer.
-     * @param reasonCode 1=mutual, 2=timeout, 3=admin/testnet, 99=other
-     */
-    function cancelAndRefund(uint8 reasonCode)
-        external onlyAuthorized notTerminal
-    {
+    function cancelAndRefund(uint8 reasonCode) external onlyAuthorized notTerminal {
         uint256 refund = fundedAmount;
         address refundTo = importer;
         fundedAmount = 0;
         status = Status.CANCELLED;
-
         if (refund > 0) {
             settlementToken.safeTransfer(refundTo, refund);
         }
-
         emit Cancelled(reasonCode, msg.sender, refund, refundTo);
     }
 
@@ -434,28 +447,38 @@ contract TradeFxSettlement {
     // ─── Shipment dispute ─────────────────────────────────────────────────────
 
     /**
-     * @notice Importer accepts that the shipment was timely.
-     *         Short-circuits the court path — settlement can proceed normally.
+     * @notice Accept the shipment as timely.
+     *         Before contestDeadline: only the importer can call.
+     *         After contestDeadline: anyone can call — prevents indefinite hold-up.
+     *         Short-circuits the court path. Settlement can proceed immediately via settle().
      */
-    function acceptShipment()
-        external onlyImporter notTerminal
-    {
-        require(shipmentStatus == ShipmentStatus.NONE, "TFX: shipment review already initiated");
+    function acceptShipment() external notTerminal {
+        require(
+            shipmentStatus == ShipmentStatus.NONE,
+            "TFX: shipment review already initiated"
+        );
         require(
             status == Status.RATE_LOCKED || status == Status.ROLLED || status == Status.FUNDED,
             "TFX: cannot accept shipment in current state"
         );
+
+        bool afterDeadline = block.timestamp > contestDeadline;
+
+        if (!afterDeadline) {
+            require(msg.sender == importer, "TFX: only importer before deadline");
+        }
+
         shipmentStatus = ShipmentStatus.ACCEPTED;
-        emit ShipmentAccepted(msg.sender, block.timestamp);
+        emit ShipmentAccepted(msg.sender, afterDeadline, block.timestamp);
     }
 
     /**
-     * @notice Importer contests the shipment timing. Creates an off-chain court case.
-     *         Pauses settlement until a verdict is delivered.
+     * @notice Importer contests shipment timing. Pauses settlement.
+     *         Reverts after contestDeadline — buyer cannot hold up indefinitely.
      *
-     * @param manifestCid        IPFS CID of the evidence manifest (string)
-     * @param statement          Exact factual statement submitted to the court
-     * @param guidelineVersion   Version string of the frozen evaluation guideline
+     * @param manifestCid      IPFS CID of evidence manifest
+     * @param statement        Factual statement submitted to the court
+     * @param guidelineVersion Frozen evaluation guideline version
      */
     function contestShipment(
         string calldata manifestCid,
@@ -464,10 +487,17 @@ contract TradeFxSettlement {
     )
         external onlyImporter notTerminal
     {
-        require(shipmentStatus == ShipmentStatus.NONE, "TFX: shipment review already initiated");
+        require(
+            shipmentStatus == ShipmentStatus.NONE,
+            "TFX: shipment review already initiated"
+        );
         require(
             status == Status.RATE_LOCKED || status == Status.ROLLED || status == Status.FUNDED,
             "TFX: cannot contest in current state"
+        );
+        require(
+            block.timestamp <= contestDeadline,
+            "TFX: contest deadline passed - shipment deemed accepted"
         );
 
         shipmentStatus           = ShipmentStatus.CONTESTED;
@@ -477,31 +507,38 @@ contract TradeFxSettlement {
         shipmentReviewRequired   = true;
         exceptionPaused          = true;
 
-        emit ShipmentContested(msg.sender, manifestCid, statement, block.timestamp);
+        emit ShipmentContested(msg.sender, manifestCid, statement, contestDeadline, block.timestamp);
     }
 
     /**
-     * @notice Deliver the court verdict from the GenLayer ShipmentDeadlineCourt.
-     *         Only the oracle relayer may call this.
+     * @notice Deliver the court verdict.
+     *         Callable by the registered GenLayer courtContract address,
+     *         OR by oracleRelayer as a testnet fallback (until court contract is wired).
      *
      * @param verdict       1=TIMELY, 2=LATE, 3=UNDETERMINED
-     * @param caseId        Court case ID (e.g. "qc-coop-2026-0003")
-     * @param reasonSummary One-sentence AI reasoning summary
+     * @param caseId        Court case identifier
+     * @param reasonSummary One-sentence reasoning summary
      */
     function resolveShipmentVerdict(
         uint8 verdict,
         string calldata caseId,
         string calldata reasonSummary
     )
-        external onlyRelayer
+        external onlyVerdictSource
     {
-        require(shipmentStatus == ShipmentStatus.CONTESTED, "TFX: no active shipment contest");
+        require(
+            shipmentStatus == ShipmentStatus.CONTESTED,
+            "TFX: no active shipment contest"
+        );
 
-        shipmentCaseId      = caseId;
+        bool fromCourt = (courtContract != address(0) && msg.sender == courtContract);
+
+        shipmentCaseId        = caseId;
         shipmentVerdictReason = reasonSummary;
-        shipmentVerdictAt   = block.timestamp;
+        shipmentVerdictAt     = block.timestamp;
 
-        emit ShipmentVerdictReceived(verdict, caseId, reasonSummary, msg.sender, block.timestamp);
+        emit ShipmentVerdictReceived(verdict, caseId, reasonSummary,
+            msg.sender, fromCourt, block.timestamp);
 
         if (verdict == 1) {
             // TRUE — TIMELY
@@ -509,25 +546,18 @@ contract TradeFxSettlement {
             exceptionPaused = false;
 
         } else if (verdict == 2) {
-            // FALSE — LATE — cancel and refund
+            // FALSE — LATE — cancel and refund immediately
             shipmentStatus  = ShipmentStatus.LATE;
             exceptionPaused = false;
-
-            uint256 refund = fundedAmount;
-            fundedAmount   = 0;
-            status         = Status.CANCELLED;
-
-            if (refund > 0) {
-                settlementToken.safeTransfer(importer, refund);
-            }
-            emit SettlementCancelledByVerdict(importer, refund);
+            _cancelAndRefundImporter();
 
         } else if (verdict == 3) {
-            // UNDETERMINED — escalate to manual review
+            // UNDETERMINED — escalate to arbitrator
             shipmentStatus         = ShipmentStatus.UNDETERMINED;
             shipmentReviewRequired = true;
             // exceptionPaused remains true
-            emit SettlementManualReview(caseId, block.timestamp);
+            uint256 reviewDeadline = block.timestamp + MANUAL_REVIEW_WINDOW;
+            emit SettlementManualReview(caseId, reviewDeadline, block.timestamp);
 
         } else {
             revert("TFX: invalid verdict code");
@@ -535,13 +565,61 @@ contract TradeFxSettlement {
     }
 
     /**
-     * @notice Apply deterministic consequence based on known shipment status.
-     *         Can proceed only when shipment is ACCEPTED or TIMELY.
-     *         Reverts if shipment is LATE (use cancelAndRefund), UNDETERMINED (manual), or NONE (not yet reviewed).
+     * @notice Arbitrator delivers a binding human finding after UNDETERMINED verdict.
+     *         This is the defined escape hatch for insufficient-evidence cases.
+     *
+     * @param timeliness  true = shipment was timely (release); false = late (refund)
+     * @param reason      Human-readable explanation of the finding
      */
-    function finalizeAfterShipment()
-        external onlyParty notPaused
+    function resolveManualReview(bool timeliness, string calldata reason)
+        external onlyArbitrator
     {
+        require(
+            shipmentStatus == ShipmentStatus.UNDETERMINED,
+            "TFX: no manual review pending"
+        );
+
+        emit ManualReviewResolved(msg.sender, timeliness, reason, block.timestamp);
+
+        if (timeliness) {
+            shipmentStatus  = ShipmentStatus.TIMELY;
+            exceptionPaused = false;
+            // Caller then invokes finalizeAfterShipment() to release funds
+        } else {
+            shipmentStatus  = ShipmentStatus.LATE;
+            exceptionPaused = false;
+            _cancelAndRefundImporter();
+        }
+    }
+
+    /**
+     * @notice Default UNDETERMINED to LATE after MANUAL_REVIEW_WINDOW has elapsed.
+     *         Callable by anyone — prevents permanent freeze if arbitrator is unavailable.
+     *         Importer bears the evidence burden: insufficient evidence defaults to refund.
+     */
+    function timeoutManualReview() external {
+        require(
+            shipmentStatus == ShipmentStatus.UNDETERMINED,
+            "TFX: no manual review pending"
+        );
+        require(
+            shipmentVerdictAt > 0 &&
+            block.timestamp > shipmentVerdictAt + MANUAL_REVIEW_WINDOW,
+            "TFX: review window not elapsed"
+        );
+
+        emit ManualReviewTimedOut(msg.sender, block.timestamp);
+
+        shipmentStatus  = ShipmentStatus.LATE;
+        exceptionPaused = false;
+        _cancelAndRefundImporter();
+    }
+
+    /**
+     * @notice Finalize settlement after shipment is confirmed TIMELY or ACCEPTED.
+     *         Cannot proceed if LATE (funds were refunded inline) or UNDETERMINED (frozen).
+     */
+    function finalizeAfterShipment() external onlyParty notPaused {
         require(
             shipmentStatus == ShipmentStatus.ACCEPTED ||
             shipmentStatus == ShipmentStatus.TIMELY,
@@ -552,9 +630,26 @@ contract TradeFxSettlement {
         uint256 amount = fundedAmount;
         fundedAmount = 0;
         status = Status.SETTLED;
-
         settlementToken.safeTransfer(exporter, amount);
         emit Settled(exporter, amount, block.timestamp);
+    }
+
+    // ─── Internal ─────────────────────────────────────────────────────────────
+
+    function _cancelAndRefundImporter() internal {
+        uint256 refund = fundedAmount;
+        fundedAmount   = 0;
+        status         = Status.CANCELLED;
+        if (refund > 0) {
+            settlementToken.safeTransfer(importer, refund);
+        }
+        emit SettlementCancelledByVerdict(importer, refund);
+    }
+
+    function _computeSettlement(uint256 notional, uint256 rate)
+        internal pure returns (uint256)
+    {
+        return (notional * rate) / 1e18;
     }
 
     // ─── Views ────────────────────────────────────────────────────────────────
@@ -574,8 +669,11 @@ contract TradeFxSettlement {
         uint256 _settlementAmount,
         uint256 _fundedAmount,
         uint256 _currentDueDate,
+        uint256 _contestDeadline,
         uint256 _rollCount,
-        bool    _exceptionFlagged
+        bool    _exceptionFlagged,
+        address _courtContract,
+        address _arbitrator
     ) {
         return (
             status,
@@ -584,16 +682,11 @@ contract TradeFxSettlement {
             settlementAmount,
             fundedAmount,
             currentDueDate,
+            contestDeadline,
             rollCount,
-            exceptionFlagged
+            exceptionFlagged,
+            courtContract,
+            arbitrator
         );
-    }
-
-    // ─── Internal ─────────────────────────────────────────────────────────────
-
-    function _computeSettlement(uint256 notional, uint256 rate)
-        internal pure returns (uint256)
-    {
-        return (notional * rate) / 1e18;
     }
 }

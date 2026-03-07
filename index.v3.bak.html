@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FX Settlement Engine — Trade Finance × GenLayer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff; --card: #f7f7f5; --dark: #1a1817; --muted: #74706c;
+      --border: #e5e3e0; --green: #15803d; --green-light: #dcfce7;
+      --blue: #1d4ed8; --blue-light: #dbeafe; --amber: #b45309; --amber-light: #fef3c7;
+      --red: #dc2626; --red-light: #fee2e2;
+      --radius: 10px; --radius-xl: 16px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.07);
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--dark); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .mono { font-family: 'DM Mono', monospace; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── HEADER ── */
+    header { position: sticky; top: 12px; z-index: 100; padding: 0 24px; }
+    .header-inner {
+      max-width: 1100px; margin: 0 auto;
+      background: rgba(255,255,255,0.95); border: 1px solid var(--border);
+      border-radius: 9999px; padding: 10px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: var(--shadow-md); backdrop-filter: blur(12px);
+    }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--dark); font-weight: 700; font-size: 14px; letter-spacing: -0.2px; }
+    .logo-chip { background: var(--dark); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.3px; }
+    nav { display: flex; gap: 2px; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; padding: 5px 12px; border-radius: 9999px; transition: all 0.15s; }
+    nav a:hover { background: var(--card); color: var(--dark); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 9999px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; text-decoration: none; transition: all 0.15s; }
+    .btn-dark { background: var(--dark); color: #fff; }
+    .btn-dark:hover { background: #2d2927; }
+    .btn-outline { background: #fff; color: var(--dark); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--dark); }
+
+    /* ── SECTION ── */
+    .section { padding: 72px 0; }
+    .section-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .section-title { font-size: clamp(26px, 3.5vw, 38px); font-weight: 700; letter-spacing: -0.6px; line-height: 1.15; margin-bottom: 14px; }
+    .section-sub { font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.65; }
+
+    /* ── HERO ── */
+    .hero { padding: 64px 0 48px; min-height: calc(100vh - 60px); display: flex; align-items: center; }
+    .hero-inner { width: 100%; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 9999px; padding: 4px 14px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      font-family: 'DM Mono', monospace; margin-bottom: 24px;
+    }
+    .hero-eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .hero h1 { font-size: clamp(28px, 4vw, 48px); font-weight: 700; line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px; max-width: 700px; }
+    .hero-sub { font-size: 16px; color: var(--muted); max-width: 540px; line-height: 1.7; margin-bottom: 32px; }
+
+    /* Deal card */
+    .deal-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl);
+      padding: 20px 24px; max-width: 520px; margin-bottom: 20px;
+    }
+    .deal-card-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .deal-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .deal-row:last-child { border-bottom: none; }
+    .deal-key { color: var(--muted); font-size: 13px; }
+    .deal-val { font-weight: 600; font-family: 'DM Mono', monospace; font-size: 13px; }
+
+    .hero-settlement { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .settlement-line { font-size: 15px; color: var(--muted); }
+    .settlement-line strong { color: var(--dark); }
+
+    .hero-outcome {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--green-light); border: 1px solid rgba(21,128,61,0.2);
+      border-radius: 9999px; padding: 8px 18px;
+      font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 600; color: var(--green);
+      margin-bottom: 20px;
+    }
+    .hero-outcome .check { font-size: 16px; }
+
+    .ext-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted);
+      text-decoration: none; border: 1px solid var(--border); border-radius: 9999px;
+      padding: 5px 12px; transition: all 0.15s;
+    }
+    .ext-link:hover { border-color: var(--dark); color: var(--dark); }
+    .ext-link svg { opacity: 0.5; }
+
+    /* ── TIMELINE ── */
+    .timeline-section { padding: 48px 0 72px; background: var(--card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .timeline-wrap { overflow-x: auto; padding-bottom: 8px; }
+    .timeline {
+      display: flex; align-items: flex-start; gap: 0;
+      min-width: 900px; padding: 8px 4px;
+    }
+    .tl-step {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      position: relative;
+    }
+    .tl-arrow {
+      display: flex; align-items: center; padding-top: 28px; color: var(--border);
+      font-size: 20px; flex-shrink: 0; padding: 28px 2px 0;
+    }
+    .tl-card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 14px 12px; width: 100%; max-width: 140px;
+      box-shadow: var(--shadow); text-align: left;
+    }
+    .tl-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.5px; }
+    .tl-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
+    .tl-info { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .tl-tag {
+      display: inline-block; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 9999px; margin-top: 6px; letter-spacing: 0.3px;
+    }
+    .tl-tag.green { background: var(--green-light); color: var(--green); }
+    .tl-tag.blue { background: var(--blue-light); color: var(--blue); }
+    .tl-tag.amber { background: var(--amber-light); color: var(--amber); }
+    .tl-tag.purple { background: #ede9fe; color: #7c3aed; }
+    .tl-tag.gray { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+    .tl-tx { display: block; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--blue); text-decoration: none; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+    .tl-tx:hover { text-decoration: underline; }
+    .timeline-footer { margin-top: 24px; text-align: center; }
+    .timeline-footer a { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); text-decoration: none; }
+    .timeline-footer a:hover { color: var(--dark); }
+
+    /* ── PROBLEM ── */
+    .problem-bullets { list-style: none; margin: 28px 0; display: flex; flex-direction: column; gap: 16px; }
+    .problem-bullets li {
+      display: flex; gap: 14px; align-items: flex-start;
+      font-size: 16px; line-height: 1.6;
+    }
+    .bullet-icon {
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--amber-light); display: flex; align-items: center; justify-content: center;
+      font-size: 13px; margin-top: 2px;
+    }
+    .problem-conclusion { font-size: 15px; color: var(--muted); font-style: italic; border-left: 3px solid var(--green); padding-left: 16px; }
+
+    /* ── SOLUTION ── */
+    .solution-steps { display: flex; flex-direction: column; gap: 16px; margin: 28px 0; }
+    .solution-step {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+    .solution-num {
+      flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+      background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600;
+    }
+    .solution-text { font-size: 16px; font-weight: 500; padding-top: 4px; }
+    .solution-conclusion { font-size: 15px; color: var(--muted); font-style: italic; border-left: 3px solid var(--blue); padding-left: 16px; }
+
+    /* ── SCENARIOS ── */
+    .scenarios-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 36px; }
+    .scenario-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl);
+      padding: 24px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .scenario-title { font-size: 16px; font-weight: 700; }
+    .scenario-flow {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);
+      background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
+    }
+    .flow-node {
+      background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px 8px; font-size: 11px; font-weight: 600; color: var(--dark); white-space: nowrap;
+    }
+    .flow-arrow { color: var(--muted); font-size: 14px; }
+    .scenario-detail { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .scenario-outcome { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: var(--green); }
+    .scenario-note { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); font-style: italic; }
+
+    /* ── GENLAYER ── */
+    .gl-diagram {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      margin: 32px 0; flex-wrap: wrap;
+    }
+    .gl-node {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 20px; font-size: 14px; font-weight: 600; text-align: center;
+      font-family: 'DM Mono', monospace;
+    }
+    .gl-node.contract { background: var(--blue-light); border-color: rgba(29,78,216,0.2); color: var(--blue); }
+    .gl-node.result { background: var(--green-light); border-color: rgba(21,128,61,0.2); color: var(--green); }
+    .gl-arrow { font-size: 22px; color: var(--muted); }
+
+    .validator-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 24px 0; }
+    .validator-card {
+      border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 10px;
+      text-align: center; font-family: 'DM Mono', monospace; font-size: 11px;
+    }
+    .validator-card.agree { background: var(--green-light); border-color: rgba(21,128,61,0.2); }
+    .validator-card.disagree { background: var(--card); }
+    .v-addr { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+    .v-rate { font-size: 15px; font-weight: 600; color: var(--dark); margin-bottom: 4px; }
+    .v-status { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
+    .v-status.agree { color: var(--green); }
+    .v-status.disagree { color: var(--muted); }
+
+    .consensus-bar {
+      background: var(--green-light); border: 1px solid rgba(21,128,61,0.2); border-radius: var(--radius);
+      padding: 14px 20px; display: flex; align-items: center; gap: 16px; margin-top: 8px;
+      font-family: 'DM Mono', monospace; font-size: 13px;
+    }
+    .consensus-label { font-weight: 700; color: var(--green); }
+    .consensus-rate { font-size: 18px; font-weight: 700; color: var(--dark); }
+
+    /* ── EXCEPTION ── */
+    .exception-section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px 32px; margin-top: 36px; opacity: 0.85; }
+    .exception-section p { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+    /* ── WHAT THIS IS NOT ── */
+    .not-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+    .not-list li {
+      display: flex; align-items: center; gap: 12px; font-size: 16px;
+      padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .not-x { color: var(--red); font-size: 16px; font-weight: 700; font-family: 'DM Mono', monospace; }
+
+    /* ── TECH ARCH ── */
+    .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 36px; }
+    .arch-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl);
+      padding: 24px;
+    }
+    .arch-card-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+    .arch-addr { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--dark); word-break: break-all; line-height: 1.6; }
+    .arch-addr a { color: var(--blue); text-decoration: none; }
+    .arch-addr a:hover { text-decoration: underline; }
+    .arch-chain { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+    .console { background: var(--dark); border-radius: var(--radius-xl); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    .console-bar { background: #242220; padding: 12px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .cdot { width: 11px; height: 11px; border-radius: 50%; }
+    .cdot-r { background: #ef4444; } .cdot-y { background: #f59e0b; } .cdot-g { background: #22c55e; }
+    .console-title { font-family: 'DM Mono', monospace; font-size: 12px; color: #5a5755; margin-left: 8px; }
+    .console-body { padding: 24px 28px; }
+    .cl { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'DM Mono', monospace; font-size: 13px; }
+    .cl:last-child { border-bottom: none; }
+    .cl-k { color: #5a5755; }
+    .cl-v { color: #e5e7eb; }
+    .cl-v.green { color: #86efac; }
+    .cl-v.amber { color: #fbbf24; }
+    .cl-v.blue { color: #93c5fd; }
+    .console-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 14px 0; }
+
+    .bench-hierarchy { margin-top: 24px; }
+    .bench-hierarchy-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+    .bench-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: var(--radius); margin-bottom: 8px; font-size: 14px;
+    }
+    .bench-item.primary { background: var(--amber-light); border: 1px solid rgba(180,83,9,0.15); }
+    .bench-item.live { background: var(--green-light); border: 1px solid rgba(21,128,61,0.15); }
+    .bench-item.fail { background: var(--red-light); border: 1px solid rgba(220,38,38,0.15); color: var(--muted); text-decoration: line-through; }
+    .bench-num { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; min-width: 20px; }
+    .bench-name { font-weight: 600; }
+    .bench-badge-sm { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; margin-left: auto; }
+    .bench-badge-sm.primary { background: rgba(180,83,9,0.1); color: var(--amber); }
+    .bench-badge-sm.live { background: rgba(21,128,61,0.1); color: var(--green); }
+
+    .design-choices { margin-top: 24px; }
+    .design-choice {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+    }
+    .design-choice:last-child { border-bottom: none; }
+    .design-choice-key { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600; color: var(--blue); min-width: 160px; flex-shrink: 0; }
+    .design-choice-val { color: var(--muted); line-height: 1.5; }
+
+    /* ── FOOTER ── */
+    footer { background: var(--dark); color: #9ca3af; padding: 48px 0 32px; margin-top: 0; }
+    .footer-inner { display: flex; gap: 48px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 32px; }
+    .footer-logo { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+    .footer-note { font-size: 13px; line-height: 1.7; max-width: 400px; }
+    .footer-links { display: flex; flex-direction: column; gap: 8px; }
+    .footer-links a { color: #9ca3af; text-decoration: none; font-size: 14px; transition: color 0.15s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; font-family: 'DM Mono', monospace; font-size: 11px; color: #4b5563; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:700px){
+      nav { display: none; }
+      .scenarios-grid { grid-template-columns: 1fr !important; }
+      .arch-grid { grid-template-columns: 1fr !important; }
+      .validator-grid { grid-template-columns: repeat(3, 1fr) !important; }
+      .timeline { min-width: 0; flex-direction: column; align-items: stretch; }
+      .tl-step { align-items: flex-start; flex-direction: row; gap: 12px; }
+      .tl-card { max-width: 100%; }
+      .tl-arrow { display: none; }
+      .tl-step { margin-bottom: 12px; }
+      .gl-diagram { flex-direction: column; }
+      .footer-inner { flex-direction: column; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <span class="logo-chip">FX</span>
+      Trade Finance × GenLayer
+    </a>
+    <nav>
+      <a href="#problem">Problem</a>
+      <a href="#scenarios">Scenarios</a>
+      <a href="#genlayer">GenLayer</a>
+      <a href="#architecture">Architecture</a>
+    </nav>
+    <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank" class="btn btn-dark">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Basescan
+    </a>
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      Live on Base Sepolia · GenLayer Studionet
+    </div>
+
+    <h1>Cross-border invoice settlement with a locked FX benchmark</h1>
+    <p class="hero-sub">A Bolivian exporter sells quinoa to a Peruvian distributor. GenLayer locks the FX benchmark used to settle the invoice and updates it when the payment date changes.</p>
+
+    <!-- Deal card -->
+    <div class="deal-card">
+      <div class="deal-card-title">Trade Details</div>
+      <div class="deal-row">
+        <span class="deal-key">Exporter</span>
+        <span class="deal-val">Cooperativa Agrícola Andina (Bolivia)</span>
+      </div>
+      <div class="deal-row">
+        <span class="deal-key">Importer</span>
+        <span class="deal-val">Alimentos del Pacífico (Peru)</span>
+      </div>
+      <div class="deal-row">
+        <span class="deal-key">Invoice</span>
+        <span class="deal-val">150,000 BOB</span>
+      </div>
+      <div class="deal-row">
+        <span class="deal-key">Settlement currency</span>
+        <span class="deal-val">PEN</span>
+      </div>
+      <div class="deal-row">
+        <span class="deal-key">Original due date</span>
+        <span class="deal-val">April 5, 2026</span>
+      </div>
+    </div>
+
+    <div class="hero-settlement">
+      <div class="settlement-line">Settlement locked at <strong>0.493 BOB/PEN</strong> → <strong>73,950 PEN</strong></div>
+      <div class="settlement-line">Payment moved to May 5 → <strong>settlement rolled</strong></div>
+    </div>
+
+    <div class="hero-outcome">
+      <span class="check">✓</span>
+      Exporter receives 73,950 PEN
+    </div>
+
+    <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank" class="ext-link">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      View contract on Basescan ↗
+    </a>
+  </div>
+</section>
+
+<!-- ── TRANSACTION TIMELINE ── -->
+<section class="timeline-section">
+  <div class="container">
+    <div style="margin-bottom:28px">
+      <div class="section-label">Transaction Timeline</div>
+      <div class="section-title" style="font-size:clamp(20px,3vw,28px)">Seven steps from trade creation to final settlement</div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="timeline">
+
+        <!-- Step 1 -->
+        <div class="tl-step">
+          <div class="tl-card">
+            <div class="tl-num">01</div>
+            <div class="tl-title">Trade Created</div>
+            <div class="tl-info">State: DRAFT<br>Invoice deployed</div>
+            <span class="tl-tag gray">DRAFT</span>
+          </div>
+        </div>
+
+        <div class="tl-arrow">→</div>
+
+        <!-- Step 2 -->
+        <div class="tl-step">
+          <div class="tl-card">
+            <div class="tl-num">02</div>
+            <div class="tl-title">Rate Lock Requested</div>
+            <div class="tl-info">requestRateLock() called by exporter</div>
+            <a href="https://sepolia.basescan.org/tx/0x1298bbabfe992f144db5a72c3ba1444f7d13beb868f694a215a6c77c10560b5d" target="_blank" class="tl-tx">0x1298…b5d ↗</a>
+            <span class="tl-tag blue">PENDING</span>
+          </div>
+        </div>
+
+        <div class="tl-arrow">→</div>
+
+        <!-- Step 3 -->
+        <div class="tl-step">
+          <div class="tl-card">
+            <div class="tl-num">03</div>
+            <div class="tl-title">Validators Agree</div>
+            <div class="tl-info">Benchmark: 0.493<br>4/5 validators<br>MARKET_AGGREGATE</div>
+            <a href="https://explorer-studio.genlayer.com/transactions/0x8085b03f9fc857785a242e64c7b00051790f04847de1b22e4b163ae5318f71c1" target="_blank" class="tl-tx">GL oracle tx ↗</a>
+            <span class="tl-tag green">CONSENSUS</span>
+          </div>
+        </div>
+
+        <div class="tl-arrow">→</div>
+
+        <!-- Step 4 -->
+        <div class="tl-step">
+          <div class="tl-card">
+            <div class="tl-num">04</div>
+            <div class="tl-title">Settlement Computed</div>
+            <div class="tl-info">150,000 × 0.493<br>= 73,950 PEN</div>
+            <span class="tl-tag green">RATE_LOCKED</span>
+          </div>
+        </div>
+
+        <div class="tl-arrow">→</div>
+
+        <!-- Step 5 -->
+        <div class="tl-step">
+          <div class="tl-card">
+            <div class="tl-num">05</div>
+            <div class="tl-title">Date Changed</div>
+            <div class="tl-info">Apr 5 → May 5<br>requestRoll() called</div>
+            <span class="tl-tag amber">ROLL REQ</span>
+          </div>
+        </div>
+
+        <div class="tl-arrow">→</div>
+
+        <!-- Step 6 -->
+        <div class="tl-step">
+          <div class="tl-card">
+            <div class="tl-num">06</div>
+            <div class="tl-title">Roll Executed</div>
+            <div class="tl-info">Rate re-locked: 0.493<br>Roll cost: 0</div>
+            <a href="https://sepolia.basescan.org/tx/0x4a626e445dc1d1e036aea72833aaeccdc6e73546db4035065131b8a86c951533" target="_blank" class="tl-tx">0x4a62…533 ↗</a>
+            <span class="tl-tag purple">ROLLED</span>
+          </div>
+        </div>
+
+        <div class="tl-arrow">→</div>
+
+        <!-- Step 7 -->
+        <div class="tl-step">
+          <div class="tl-card">
+            <div class="tl-num">07</div>
+            <div class="tl-title">Final State</div>
+            <div class="tl-info">Status: ROLLED<br>Exporter: 73,950 PEN</div>
+            <span class="tl-tag green">✓ SETTLED</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="timeline-footer">
+      <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank">View full transaction history on Basescan →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── PROBLEM ── -->
+<section class="section" id="problem">
+  <div class="container">
+    <div style="max-width:680px">
+      <div class="section-label">The Problem</div>
+      <div class="section-title">Why does this exist?</div>
+
+      <ul class="problem-bullets">
+        <li>
+          <span class="bullet-icon">⚡</span>
+          <span>Cross-border invoices often change after they are issued. Payment dates move. Shipment amounts change. FX exposure must be recomputed.</span>
+        </li>
+        <li>
+          <span class="bullet-icon">🔄</span>
+          <span>Today this is handled manually between exporters, importers and treasury teams — with no shared source of truth.</span>
+        </li>
+        <li>
+          <span class="bullet-icon">📊</span>
+          <span>Different parties may reference different benchmarks, leading to disputes over the final settlement amount.</span>
+        </li>
+      </ul>
+
+      <p class="problem-conclusion">This system produces one shared settlement outcome that both parties can verify.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── SOLUTION ── -->
+<section class="section" style="padding-top:0; background:var(--card); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <div class="container" style="padding-top:72px">
+    <div style="max-width:680px">
+      <div class="section-label">The Solution</div>
+      <div class="section-title">What the system does</div>
+
+      <div class="solution-steps">
+        <div class="solution-step">
+          <div class="solution-num">1</div>
+          <div class="solution-text">Create the invoice settlement contract on-chain with both parties' addresses, invoice amount, and due date.</div>
+        </div>
+        <div class="solution-step">
+          <div class="solution-num">2</div>
+          <div class="solution-text">Lock the FX benchmark used for settlement — sourced from a decentralised oracle network (GenLayer) with validator consensus.</div>
+        </div>
+        <div class="solution-step">
+          <div class="solution-num">3</div>
+          <div class="solution-text">Apply the result consistently when trade conditions change — rolls, partial shipments, cancellations all follow the same on-chain logic.</div>
+        </div>
+      </div>
+
+      <p class="solution-conclusion">The contract records the final settlement amount and its benchmark source.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── SCENARIOS ── -->
+<section class="section" id="scenarios">
+  <div class="container">
+    <div class="section-label">Real Scenarios</div>
+    <div class="section-title">What actually happens</div>
+    <p class="section-sub">Four common trade finance situations, each handled by the same contract logic.</p>
+
+    <div class="scenarios-grid">
+
+      <!-- Card 1: Standard Settlement -->
+      <div class="scenario-card">
+        <div>
+          <div class="section-label" style="margin-bottom:6px">Scenario 01</div>
+          <div class="scenario-title">Standard Settlement</div>
+        </div>
+        <div class="scenario-flow">
+          <span class="flow-node">Importer</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Contract</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Exporter</span>
+        </div>
+        <div class="scenario-detail">Invoice settles at locked benchmark. No changes to amount or date.</div>
+        <div class="scenario-outcome">✓ 73,950 PEN paid to exporter</div>
+        <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank" class="ext-link" style="font-size:11px;align-self:flex-start">View on Basescan ↗</a>
+      </div>
+
+      <!-- Card 2: Partial Shipment -->
+      <div class="scenario-card">
+        <div>
+          <div class="section-label" style="margin-bottom:6px">Scenario 02</div>
+          <div class="scenario-title">Partial Shipment</div>
+        </div>
+        <div class="scenario-flow">
+          <span class="flow-node">Importer</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Contract</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Exporter</span>
+        </div>
+        <div class="scenario-detail">Invoice reduced from 150,000 to 135,000 BOB. Settlement recalculated using same locked benchmark.</div>
+        <div class="scenario-outcome">135,000 × 0.493 = 66,555 PEN</div>
+        <div class="scenario-note">Demo scenario — contract supports this flow</div>
+      </div>
+
+      <!-- Card 3: Date Roll -->
+      <div class="scenario-card">
+        <div>
+          <div class="section-label" style="margin-bottom:6px">Scenario 03</div>
+          <div class="scenario-title">Payment Date Roll</div>
+        </div>
+        <div class="scenario-flow">
+          <span class="flow-node">Importer</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Contract</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Exporter</span>
+        </div>
+        <div class="scenario-detail">Payment delayed from April 5 to May 5. Settlement terms rolled to new date. Rate re-locked at 0.493. Roll cost: 0.</div>
+        <div class="scenario-outcome">✓ Terms rolled · same settlement amount</div>
+        <a href="https://sepolia.basescan.org/tx/0x4a626e445dc1d1e036aea72833aaeccdc6e73546db4035065131b8a86c951533" target="_blank" class="ext-link" style="font-size:11px;align-self:flex-start">Roll tx ↗</a>
+      </div>
+
+      <!-- Card 4: Cancel and Refund -->
+      <div class="scenario-card">
+        <div>
+          <div class="section-label" style="margin-bottom:6px">Scenario 04</div>
+          <div class="scenario-title">Cancel and Refund</div>
+        </div>
+        <div class="scenario-flow">
+          <span class="flow-node">Contract</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Importer</span>
+        </div>
+        <div class="scenario-detail">Trade cancelled before settlement. Funds held in escrow are returned to importer. No FX loss.</div>
+        <div class="scenario-outcome">✓ Full refund to importer</div>
+        <div class="scenario-note">Demo scenario — contract supports cancellation</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── GENLAYER ── -->
+<section class="section" id="genlayer" style="background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="section-label">How GenLayer Fits</div>
+    <div class="section-title">Why this infrastructure</div>
+    <p class="section-sub" style="max-width:640px">GenLayer is a decentralised decision network. Validators independently compute real-world data inputs such as FX benchmarks. Consensus among validators produces a reproducible settlement result.</p>
+
+    <!-- Flow diagram -->
+    <div class="gl-diagram">
+      <div class="gl-node contract">Trade Contract</div>
+      <div class="gl-arrow">→</div>
+      <div class="gl-node" style="background:var(--card);border-color:var(--border);color:var(--dark)">GenLayer Validators</div>
+      <div class="gl-arrow">→</div>
+      <div class="gl-node result">Settlement Result</div>
+    </div>
+
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px">In this example, validators agree on the benchmark rate used to compute the settlement amount.</p>
+
+    <!-- Validator grid -->
+    <div class="validator-grid">
+      <div class="validator-card disagree">
+        <div class="v-addr">0x57De…</div>
+        <div class="v-rate">0.493</div>
+        <div class="v-status disagree">disagree</div>
+      </div>
+      <div class="validator-card agree">
+        <div class="v-addr">0x6528…</div>
+        <div class="v-rate">0.493</div>
+        <div class="v-status agree">✓ agree</div>
+      </div>
+      <div class="validator-card disagree">
+        <div class="v-addr">0x6d55…</div>
+        <div class="v-rate">0.493</div>
+        <div class="v-status disagree">disagree</div>
+      </div>
+      <div class="validator-card agree">
+        <div class="v-addr">0x757F…</div>
+        <div class="v-rate">0.493</div>
+        <div class="v-status agree">✓ agree</div>
+      </div>
+      <div class="validator-card agree">
+        <div class="v-addr">0x8729…</div>
+        <div class="v-rate">0.493</div>
+        <div class="v-status agree">✓ agree</div>
+      </div>
+    </div>
+
+    <div class="consensus-bar">
+      <span class="consensus-label">MAJORITY_AGREE</span>
+      <span style="color:var(--muted);font-size:13px">·</span>
+      <span class="consensus-rate">0.493 BOB/PEN</span>
+      <span style="color:var(--muted);font-size:12px;margin-left:auto">3/5 agree · benchmark accepted</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── EXCEPTION HANDLING ── -->
+<section class="section" style="padding-top:72px;padding-bottom:48px;">
+  <div class="container">
+    <div class="section-label" style="color:#aaa">Exception Handling</div>
+    <div class="section-title" style="font-size:clamp(20px,2.5vw,26px);color:var(--muted)">Where InternetCourt fits</div>
+
+    <div class="exception-section">
+      <p>If parties disagree about the trade state — for example shipment evidence or fraud — <strong>InternetCourt</strong> can resolve the dispute on-chain. The normal settlement flow does not require it. InternetCourt is an orthogonal module: it activates only when both parties cannot agree, and its outcome can be fed back into the settlement contract to unlock or cancel the trade.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHAT THIS IS NOT ── -->
+<section class="section" style="padding-top:0;padding-bottom:72px;" id="not">
+  <div class="container">
+    <div style="max-width:640px">
+      <div class="section-label">Scope</div>
+      <div class="section-title">What this is not</div>
+
+      <ul class="not-list">
+        <li><span class="not-x">✕</span> A letter of credit</li>
+        <li><span class="not-x">✕</span> A bank payment rail</li>
+        <li><span class="not-x">✕</span> A trade document platform</li>
+        <li><span class="not-x">✕</span> A cargo dispute arbitration system</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── TECHNICAL ARCHITECTURE ── -->
+<section class="section" id="architecture" style="background:var(--card);border-top:1px solid var(--border);">
+  <div class="container">
+    <div class="section-label">Technical Architecture</div>
+    <div class="section-title">For engineers</div>
+    <p class="section-sub">Contract addresses, oracle setup, benchmark hierarchy, and design decisions.</p>
+
+    <div class="arch-grid" style="margin-top:36px">
+
+      <!-- Contracts -->
+      <div class="arch-card">
+        <div class="arch-card-title">Deployed Contracts</div>
+        <div style="margin-bottom:16px">
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:4px">TradeFxSettlement · Base Sepolia 84532</div>
+          <div class="arch-addr">
+            <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank">0x5231a9B232abD0d8533D7046994235baEb01696d ↗</a>
+          </div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:4px">FxBenchmarkOracle · GenLayer Studionet</div>
+          <div class="arch-addr">
+            <a href="https://explorer-studio.genlayer.com/transactions/0x8085b03f9fc857785a242e64c7b00051790f04847de1b22e4b163ae5318f71c1" target="_blank">0x3B8501bAcaB70dedbC6f8B8EFCB888ba66cbc73e ↗</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:4px">Relayer wallet</div>
+          <div class="arch-addr" style="color:var(--muted)">0x7b97…30fa (dedicated · events-driven)</div>
+        </div>
+      </div>
+
+      <!-- Key transactions -->
+      <div class="arch-card">
+        <div class="arch-card-title">Key Transactions</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:3px">Rate Lock tx (Base Sepolia)</div>
+            <div class="arch-addr"><a href="https://sepolia.basescan.org/tx/0x1298bbabfe992f144db5a72c3ba1444f7d13beb868f694a215a6c77c10560b5d" target="_blank">0x1298…b5d ↗</a></div>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:3px">Roll tx (Base Sepolia)</div>
+            <div class="arch-addr"><a href="https://sepolia.basescan.org/tx/0x4a626e445dc1d1e036aea72833aaeccdc6e73546db4035065131b8a86c951533" target="_blank">0x4a62…533 ↗</a></div>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:3px">Oracle deploy tx (GenLayer)</div>
+            <div class="arch-addr"><a href="https://explorer-studio.genlayer.com/transactions/0x8085b03f9fc857785a242e64c7b00051790f04847de1b22e4b163ae5318f71c1" target="_blank">0x8085…c71c ↗</a></div>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:3px">Benchmark</div>
+            <div class="arch-addr" style="color:var(--muted)">MARKET-20260306 · as_of 2026-03-06T19:12:35Z<br>rate_18: 493000000000000000</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Benchmark hierarchy -->
+    <div class="bench-hierarchy" style="margin-top:32px">
+      <div class="bench-hierarchy-title">Benchmark Source Hierarchy</div>
+      <div class="bench-item primary">
+        <span class="bench-num">1</span>
+        <span class="bench-name">BCRP × BCB cross rate</span>
+        <span style="font-size:13px;color:var(--muted)">Primary — audit reference (central bank)</span>
+        <span class="bench-badge-sm primary">PRIMARY</span>
+      </div>
+      <div class="bench-item live">
+        <span class="bench-num">2</span>
+        <span class="bench-name">Market aggregate</span>
+        <span style="font-size:13px;color:var(--muted)">Live — open.er-api.com</span>
+        <span class="bench-badge-sm live">FALLBACK</span>
+      </div>
+      <div class="bench-item fail">
+        <span class="bench-num">✕</span>
+        <span class="bench-name">No lock if both fail</span>
+        <span style="font-size:13px">Rate lock reverts · no settlement computed</span>
+      </div>
+    </div>
+
+    <!-- Design choices console -->
+    <div class="console" style="margin-top:32px">
+      <div class="console-bar">
+        <span class="cdot cdot-r"></span>
+        <span class="cdot cdot-y"></span>
+        <span class="cdot cdot-g"></span>
+        <span class="console-title">design-choices.json</span>
+      </div>
+      <div class="console-body">
+        <div class="cl">
+          <span class="cl-k">comparison_mode</span>
+          <span class="cl-v green">strict_eq</span>
+        </div>
+        <div class="cl">
+          <span class="cl-k">rate_lock_direction</span>
+          <span class="cl-v blue">one-way (exporter → importer)</span>
+        </div>
+        <div class="cl">
+          <span class="cl-k">exception_handling</span>
+          <span class="cl-v amber">orthogonal (InternetCourt, opt-in)</span>
+        </div>
+        <div class="cl">
+          <span class="cl-k">relayer_wallet</span>
+          <span class="cl-v">dedicated · event-driven · 0x7b97…30fa</span>
+        </div>
+        <div class="cl">
+          <span class="cl-k">lifecycle_reconstruction</span>
+          <span class="cl-v green">on-chain events only</span>
+        </div>
+        <div class="cl">
+          <span class="cl-k">roll_cost</span>
+          <span class="cl-v">0 (spot re-lock, no carry)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-logo">
+          <span style="background:rgba(255,255,255,0.1);border-radius:6px;padding:2px 8px;font-family:'DM Mono',monospace;font-size:11px">FX</span>
+          Trade Finance × GenLayer
+        </div>
+        <div class="footer-note">
+          A prototype demonstrating GenLayer as a distributed control plane for FX-settled cross-border invoices.
+          Benchmark: market aggregate (live) · BCRP×BCB (audit reference).
+          Deployed on Base Sepolia + GenLayer Studionet. Not production ready.
+        </div>
+      </div>
+      <div>
+        <div class="footer-links">
+          <a href="https://genlayer.com" target="_blank">GenLayer</a>
+          <a href="https://docs.genlayer.com" target="_blank">GenLayer Docs</a>
+          <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank">TradeFxSettlement ↗</a>
+          <a href="https://github.com/acastellana/trade-finance-genlayer" target="_blank">GitHub ↗</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      TradeFxSettlement: 0x5231a9B232abD0d8533D7046994235baEb01696d · FxBenchmarkOracle: 0x3B8501bAcaB70dedbC6f8B8EFCB888ba66cbc73e · Chain: Base Sepolia 84532
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

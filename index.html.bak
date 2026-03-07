@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FX Settlement Engine — Trade Finance × GenLayer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff; --card: #f7f7f5; --dark: #1a1817; --muted: #74706c;
+      --border: #e5e3e0; --green: #15803d; --green-light: #dcfce7;
+      --blue: #1d4ed8; --blue-light: #dbeafe; --amber: #b45309; --amber-light: #fef3c7;
+      --red: #dc2626; --red-light: #fee2e2;
+      --radius: 10px; --radius-xl: 16px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.07);
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--dark); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .mono { font-family: 'DM Mono', monospace; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── HEADER ── */
+    header { position: sticky; top: 12px; z-index: 100; padding: 0 24px; }
+    .header-inner {
+      max-width: 1100px; margin: 0 auto;
+      background: rgba(255,255,255,0.95); border: 1px solid var(--border);
+      border-radius: 9999px; padding: 10px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: var(--shadow-md); backdrop-filter: blur(12px);
+    }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--dark); font-weight: 700; font-size: 14px; letter-spacing: -0.2px; }
+    .logo-chip { background: var(--dark); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.3px; }
+    nav { display: flex; gap: 2px; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; padding: 5px 12px; border-radius: 9999px; transition: all 0.15s; }
+    nav a:hover { background: var(--card); color: var(--dark); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 9999px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; text-decoration: none; transition: all 0.15s; }
+    .btn-dark { background: var(--dark); color: #fff; }
+    .btn-dark:hover { background: #2d2927; }
+    .btn-outline { background: #fff; color: var(--dark); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--dark); }
+
+    /* ── HERO ── */
+    .hero { padding: 96px 0 72px; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 9999px; padding: 4px 14px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      font-family: 'DM Mono', monospace; margin-bottom: 28px;
+    }
+    .hero-eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .hero h1 { font-size: clamp(34px, 5vw, 58px); font-weight: 700; line-height: 1.1; letter-spacing: -1.2px; margin-bottom: 20px; max-width: 760px; }
+    .hero-sub { font-size: 17px; color: var(--muted); max-width: 540px; line-height: 1.7; margin-bottom: 40px; }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 56px; }
+    .hero-stat-row { display: flex; gap: 32px; flex-wrap: wrap; }
+    .hero-stat { }
+    .hero-stat-val { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+    .hero-stat-label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+    /* ── SECTION ── */
+    .section { padding: 72px 0; }
+    .section-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .section-title { font-size: clamp(26px, 3.5vw, 38px); font-weight: 700; letter-spacing: -0.6px; line-height: 1.15; margin-bottom: 14px; }
+    .section-sub { font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.65; }
+
+    /* ── LIVE SETTLEMENT CONSOLE ── */
+    .console { background: var(--dark); border-radius: var(--radius-xl); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    .console-bar { background: #242220; padding: 12px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .cdot { width: 11px; height: 11px; border-radius: 50%; }
+    .cdot-r { background: #ef4444; } .cdot-y { background: #f59e0b; } .cdot-g { background: #22c55e; }
+    .console-title { font-family: 'DM Mono', monospace; font-size: 12px; color: #5a5755; margin-left: 8px; }
+    .console-body { padding: 28px 32px; }
+
+    .cl { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'DM Mono', monospace; font-size: 13px; }
+    .cl:last-child { border-bottom: none; }
+    .cl-k { color: #5a5755; }
+    .cl-v { color: #e5e7eb; }
+    .cl-v.green { color: #86efac; }
+    .cl-v.amber { color: #fbbf24; }
+    .cl-v.blue { color: #93c5fd; }
+    .cl-v.muted { color: #5a5755; }
+    .cl-v.big { font-size: 18px; font-weight: 500; }
+    .console-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 18px 0; }
+
+    .status-rolled { background: rgba(139,92,246,0.15); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.25); padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px; }
+    .status-locked { background: rgba(34,197,94,0.12); color: #86efac; border: 1px solid rgba(34,197,94,0.2); padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px; }
+    .bench-chip { background: rgba(255,255,255,0.07); color: #9ca3af; padding: 2px 9px; border-radius: 4px; font-size: 11px; }
+    .audit-chip { background: rgba(251,191,36,0.1); color: #fbbf24; padding: 2px 9px; border-radius: 4px; font-size: 11px; border: 1px solid rgba(251,191,36,0.15); }
+
+    /* ── BENCHMARK EXPLAINER ── */
+    .bench-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:680px){ .bench-grid{grid-template-columns:1fr;} }
+    .bench-card { border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 28px; }
+    .bench-card.live { background: var(--green-light); border-color: rgba(21,128,61,0.2); }
+    .bench-card.audit { background: var(--amber-light); border-color: rgba(180,83,9,0.2); }
+    .bench-badge { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; padding: 3px 10px; border-radius: 9999px; margin-bottom: 16px; display: inline-block; }
+    .bench-badge.live { background: rgba(21,128,61,0.15); color: var(--green); }
+    .bench-badge.audit { background: rgba(180,83,9,0.15); color: var(--amber); }
+    .bench-card-title { font-size: 19px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.3px; }
+    .bench-card-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
+    .bench-card.audit .bench-card-desc { color: #7c5228; }
+
+    /* ── HOW IT WORKS ── */
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    @media(max-width:680px){ .steps{grid-template-columns:1fr;} }
+    .step { background: var(--card); border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 26px; }
+    .step-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 16px; font-weight: 600; }
+    .step-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+    .step-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+    .step-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* ── ORACLE FLOW ── */
+    .oracle-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: center; }
+    @media(max-width:700px){ .oracle-flow{grid-template-columns:1fr; gap:12px;} .oracle-arrow{transform:rotate(90deg); margin:0 auto;} }
+    .oracle-node { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 22px; }
+    .oracle-node.gl { background: #1a1817; border-color: #2d2927; color: #e5e7eb; }
+    .oracle-arrow { text-align: center; color: var(--muted); padding: 0 8px; font-size: 22px; }
+    .oracle-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+    .oracle-name { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+    .oracle-detail { font-size: 13px; color: var(--muted); line-height: 1.55; }
+    .oracle-node.gl .oracle-label { color: #5a5755; }
+    .oracle-node.gl .oracle-name { color: #fff; }
+    .oracle-node.gl .oracle-detail { color: #9ca3af; }
+
+    /* ── VALIDATOR GRID ── */
+    .v-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; }
+    @media(max-width:600px){ .v-grid{grid-template-columns:1fr 1fr;} }
+    .v-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; text-align: center; }
+    .v-id { font-family: 'DM Mono', monospace; font-size: 11px; color: #5a5755; font-weight: 600; margin-bottom: 6px; }
+    .v-rate { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: #86efac; margin-bottom: 4px; }
+    .v-source { font-family: 'DM Mono', monospace; font-size: 10px; color: #5a5755; }
+    .v-agree { font-size: 10px; font-weight: 600; margin-top: 6px; }
+    .v-agree.agree { color: #86efac; } .v-agree.disagree { color: #f87171; }
+
+    .consensus-display { background: rgba(134,239,172,0.08); border: 1px solid rgba(134,239,172,0.15); border-radius: 10px; padding: 20px 24px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .cons-label { font-family: 'DM Mono', monospace; font-size: 11px; color: #5a5755; margin-bottom: 4px; }
+    .cons-rate { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; color: #86efac; letter-spacing: -1px; }
+    .cons-method { font-family: 'DM Mono', monospace; font-size: 11px; color: #5a5755; margin-top: 4px; }
+
+    /* ── TIMELINE ── */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .tl-row { display: flex; gap: 16px; }
+    .tl-line { display: flex; flex-direction: column; align-items: center; }
+    .tl-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .tl-dot-done { background: var(--dark); color: #fff; }
+    .tl-dot-green { background: var(--green); color: #fff; }
+    .tl-dot-purple { background: #7c3aed; color: #fff; }
+    .tl-vline { width: 2px; background: var(--border); flex: 1; min-height: 20px; margin: 4px 0; }
+    .tl-body { padding-bottom: 20px; flex: 1; padding-top: 2px; }
+    .tl-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+    .tl-sub { font-size: 12px; color: var(--muted); }
+
+    /* ── INFO CARDS ── */
+    .ic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+    .ic { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .ic-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px; }
+    .ic-value { font-size: 15px; font-weight: 700; }
+    .ic-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* ── MATH BOX ── */
+    .math-box { background: var(--dark); border-radius: var(--radius); padding: 20px 24px; }
+    .mr { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'DM Mono', monospace; font-size: 13px; }
+    .mr:last-child { border-bottom: none; }
+    .mr-k { color: #5a5755; }
+    .mr-v { color: #e5e7eb; }
+    .mr.total .mr-v { color: #86efac; font-size: 17px; font-weight: 600; }
+    .mr.total { padding-top: 12px; }
+
+    /* ── ARCH ── */
+    .arch-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .arch-num { width: 28px; height: 28px; border-radius: 50%; background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .arch-content .arch-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+    .arch-content .arch-desc { font-size: 14px; color: var(--muted); }
+
+    /* ── CHIPS / TAGS ── */
+    .tag { display: inline-flex; align-items: center; gap: 4px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 9999px; letter-spacing: 0.2px; }
+    .tag-green { background: var(--green-light); color: var(--green); }
+    .tag-blue { background: var(--blue-light); color: var(--blue); }
+    .tag-amber { background: var(--amber-light); color: var(--amber); }
+    .tag-muted { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+    .tag-dark { background: rgba(255,255,255,0.08); color: #9ca3af; }
+
+    /* ── LINK ── */
+    .ext-link { display: inline-flex; align-items: center; gap: 4px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--blue); text-decoration: none; padding: 3px 9px; background: var(--blue-light); border: 1px solid rgba(29,78,216,0.15); border-radius: 6px; }
+    .ext-link:hover { text-decoration: underline; }
+
+    /* ── FOOTER ── */
+    footer { background: var(--dark); padding: 48px 0 36px; }
+    .footer-inner { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+    .footer-logo { font-weight: 700; font-size: 14px; color: #fff; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .footer-note { font-family: 'DM Mono', monospace; font-size: 12px; color: #4b5563; max-width: 360px; line-height: 1.6; }
+    .footer-links { display: flex; flex-direction: column; gap: 8px; }
+    .footer-links a { color: #4b5563; text-decoration: none; font-size: 13px; transition: color 0.15s; }
+    .footer-links a:hover { color: #9ca3af; }
+    .footer-bottom { margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 11px; color: #3d3b39; }
+
+    /* ── UTILS ── */
+    .divider { height: 1px; background: var(--border); margin: 24px 0; }
+    @media(max-width:768px){ nav{display:none;} .hero{padding:72px 0 56px;} }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <span class="logo-chip">FX</span>
+      Trade Finance
+      <span style="color:var(--muted);margin:0 2px">×</span>
+      GenLayer
+    </a>
+    <nav>
+      <a href="#settlement">Live Settlement</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="#architecture">Architecture</a>
+    </nav>
+    <a href="#settlement" class="btn btn-dark">View Live Deal →</a>
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      Live on Base Sepolia &amp; GenLayer Studionet
+    </div>
+    <h1>A distributed control plane for cross-border invoice settlement</h1>
+    <p class="hero-sub">
+      GenLayer coordinates the FX settlement of cross-border invoices by locking a benchmark rate and applying it consistently when payment occurs or settlement dates change.
+    </p>
+    <div class="hero-actions">
+      <a href="#settlement" class="btn btn-dark" style="padding:10px 22px;font-size:14px">View Live Settlement ↓</a>
+      <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank" class="btn btn-outline" style="padding:10px 22px;font-size:14px">Basescan ↗</a>
+    </div>
+    <div class="hero-stat-row">
+      <div class="hero-stat">
+        <div class="hero-stat-val">150,000 BOB</div>
+        <div class="hero-stat-label">INVOICE VALUE</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" style="color:var(--green)">73,950 PEN</div>
+        <div class="hero-stat-label">SETTLEMENT LOCKED</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">0.493</div>
+        <div class="hero-stat-label">CONSENSUS RATE</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">1</div>
+        <div class="hero-stat-label">ROLLS COMPLETED</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHAT THIS IS NOT ── -->
+<section style="padding:0 0 56px">
+  <div class="container">
+    <div style="border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px 36px;display:flex;align-items:flex-start;gap:48px;flex-wrap:wrap">
+      <div style="flex-shrink:0">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">This system is not</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+          <li style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500">
+            <span style="width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:var(--muted)">✕</span>
+            A letter of credit
+          </li>
+          <li style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500">
+            <span style="width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:var(--muted)">✕</span>
+            A bank payment rail
+          </li>
+          <li style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500">
+            <span style="width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:var(--muted)">✕</span>
+            A trade document platform
+          </li>
+          <li style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500">
+            <span style="width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:var(--muted)">✕</span>
+            A cargo dispute resolution system
+          </li>
+        </ul>
+      </div>
+      <div style="flex:1;min-width:220px;border-left:1px solid var(--border);padding-left:48px">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">It is</div>
+        <p style="font-size:15px;line-height:1.7;color:var(--dark)">
+          A coordination layer that locks a benchmark FX rate to a specific invoice, applies that rate when payment occurs, and records a complete audit trail — including any date extensions — on a public chain.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── LIVE SETTLEMENT CONSOLE ── -->
+<section id="settlement" class="section" style="background:var(--card)">
+  <div class="container">
+    <div style="margin-bottom:36px">
+      <div class="section-label">Live Settlement</div>
+      <div class="section-title">QC-COOP-2026-0001</div>
+      <p class="section-sub">
+        Bolivian quinoa cooperative → Peruvian food manufacturer.
+        Deployed, locked, and rolled on-chain. Zero manual intervention.
+      </p>
+    </div>
+
+    <div class="console">
+      <div class="console-bar">
+        <div class="cdot cdot-r"></div>
+        <div class="cdot cdot-y"></div>
+        <div class="cdot cdot-g"></div>
+        <span class="console-title">TradeFxSettlement · Base Sepolia · 0x5231a9B232abD0d8533D7046994235baEb01696d</span>
+      </div>
+      <div class="console-body">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;flex-wrap:wrap" class="console-main-grid">
+          <!-- LEFT: Trade Details -->
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Trade Details</div>
+            <div class="cl"><span class="cl-k">status</span><span class="cl-v green"><span class="status-rolled">● ROLLED</span></span></div>
+            <div class="cl"><span class="cl-k">invoice_ref</span><span class="cl-v">QC-COOP-2026-0001</span></div>
+            <div class="cl"><span class="cl-k">invoice_amount</span><span class="cl-v big green">150,000 BOB</span></div>
+            <div class="cl"><span class="cl-k">settlement_amount</span><span class="cl-v big amber">73,950 PEN</span></div>
+            <div class="cl"><span class="cl-k">locked_rate</span><span class="cl-v">0.493000000000000000</span></div>
+            <div class="cl"><span class="cl-k">original_due</span><span class="cl-v muted">2026-04-05</span></div>
+            <div class="cl"><span class="cl-k">current_due</span><span class="cl-v blue">2026-05-05</span></div>
+            <div class="cl"><span class="cl-k">roll_count</span><span class="cl-v">1</span></div>
+            <div class="cl"><span class="cl-k">exception_flagged</span><span class="cl-v muted">false</span></div>
+
+            <div class="console-divider"></div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Parties</div>
+            <div class="cl"><span class="cl-k">exporter</span><span class="cl-v" style="font-size:12px">Coop Quinoa Andina · Bolivia</span></div>
+            <div class="cl"><span class="cl-k">exporter_addr</span><span class="cl-v muted" style="font-size:11px">0xe963...CE87</span></div>
+            <div class="cl"><span class="cl-k">importer</span><span class="cl-v" style="font-size:12px">Alimentos del Pacífico SAC · Peru</span></div>
+            <div class="cl"><span class="cl-k">importer_addr</span><span class="cl-v muted" style="font-size:11px">0x942C...B77</span></div>
+            <div class="cl"><span class="cl-k">oracle_relayer</span><span class="cl-v muted" style="font-size:11px">0x7b97...30fa</span></div>
+          </div>
+
+          <!-- RIGHT: Benchmark + Math -->
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Benchmark — Rate Lock</div>
+            <div class="cl"><span class="cl-k">benchmark_used</span><span class="cl-v"><span class="bench-chip">MARKET_AGGREGATE</span></span></div>
+            <div class="cl"><span class="cl-k">benchmark_id</span><span class="cl-v">MARKET-20260306</span></div>
+            <div class="cl"><span class="cl-k">as_of</span><span class="cl-v muted">2026-03-06T19:12:35Z</span></div>
+            <div class="cl"><span class="cl-k">source</span><span class="cl-v muted" style="font-size:11px">open.er-api.com · BOB/PEN</span></div>
+            <div class="cl"><span class="cl-k">audit_reference</span><span class="cl-v"><span class="audit-chip">BCRP×BCB CROSS</span></span></div>
+            <div class="cl"><span class="cl-k">validators_agreed</span><span class="cl-v green">4/5 MAJORITY_AGREE</span></div>
+
+            <div class="console-divider"></div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Roll Record #1</div>
+            <div class="cl"><span class="cl-k">roll_benchmark</span><span class="cl-v"><span class="bench-chip">MARKET_AGGREGATE</span></span></div>
+            <div class="cl"><span class="cl-k">roll_rate</span><span class="cl-v">0.493 (unchanged)</span></div>
+            <div class="cl"><span class="cl-k">prior_due</span><span class="cl-v muted">2026-04-05</span></div>
+            <div class="cl"><span class="cl-k">new_due</span><span class="cl-v blue">2026-05-05</span></div>
+            <div class="cl"><span class="cl-k">roll_cost</span><span class="cl-v muted">0 (spot re-lock)</span></div>
+
+            <div class="console-divider"></div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Settlement Math</div>
+            <div class="math-box" style="padding:16px 18px">
+              <div class="mr"><span class="mr-k">invoice</span><span class="mr-v">150,000.000000000000000000 BOB</span></div>
+              <div class="mr"><span class="mr-k">rate_18</span><span class="mr-v">× 493000000000000000</span></div>
+              <div class="mr total"><span class="mr-k" style="color:#e5e7eb">settlement</span><span class="mr-v">73,950.000000000000000000 PEN</span></div>
+            </div>
+            <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;color:#5a5755">150,000 × 0.493 = 73,950.000 · exact integer arithmetic</div>
+          </div>
+        </div>
+
+        <div class="console-divider"></div>
+
+        <!-- Transaction links -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755">ON-CHAIN TRANSACTIONS</span>
+          <a href="https://sepolia.basescan.org/tx/0x1298bbabfe992f144db5a72c3ba1444f7d13beb868f694a215a6c77c10560b5d" target="_blank" class="ext-link">↗ Rate Lock</a>
+          <a href="https://sepolia.basescan.org/tx/0x4a626e445dc1d1e036aea72833aaeccdc6e73546db4035065131b8a86c951533" target="_blank" class="ext-link">↗ Roll</a>
+          <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank" class="ext-link">↗ Contract</a>
+          <a href="https://explorer-studio.genlayer.com/transactions/0x8085b03f9fc857785a242e64c7b00051790f04847de1b22e4b163ae5318f71c1" target="_blank" class="ext-link">↗ Oracle Deploy</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div style="margin-top:28px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px">
+      <div class="section-label" style="margin-bottom:20px">Deal Timeline — Fully on-chain</div>
+      <div class="timeline">
+        <div class="tl-row">
+          <div class="tl-line"><div class="tl-dot tl-dot-done">1</div><div class="tl-vline"></div></div>
+          <div class="tl-body"><div class="tl-title">Contract Deployed — Base Sepolia</div><div class="tl-sub">TradeFxSettlement at 0x5231...96d · exporter=importer=0xe963, oracleRelayer=0x7b97 (dedicated) · status DRAFT→RATE_PENDING · FxBenchmarkOracle at 0x3B85...73e (GenLayer)</div></div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-line"><div class="tl-dot tl-dot-done">2</div><div class="tl-vline"></div></div>
+          <div class="tl-body"><div class="tl-title">requestRateLock() — Exporter Wallet</div><div class="tl-sub">Emitted RateLockRequested · topic 0xe082...127 · block 38527178 → status RATE_PENDING</div></div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-line"><div class="tl-dot tl-dot-done">3</div><div class="tl-vline"></div></div>
+          <div class="tl-body"><div class="tl-title">Relayer: BCRP Primary → MAJORITY_DISAGREE</div><div class="tl-sub">Primary benchmark (BCRP×BCB) reached 2/5 validators — intermittent network reachability across heterogeneous validator nodes. System selected next benchmark in hierarchy.</div></div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-line"><div class="tl-dot tl-dot-green">4</div><div class="tl-vline"></div></div>
+          <div class="tl-body"><div class="tl-title">Oracle Consensus: MARKET_AGGREGATE — 4/5 MAJORITY_AGREE</div><div class="tl-sub">open.er-api.com · BOB/PEN · rate_18=493000000000000000 · benchmark_id=MARKET-20260306 · as_of=2026-03-06T19:12:35Z</div></div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-line"><div class="tl-dot tl-dot-green">✓</div><div class="tl-vline"></div></div>
+          <div class="tl-body"><div class="tl-title">receiveRate() Delivered — Relayer Wallet</div><div class="tl-sub">status RATE_PENDING→RATE_LOCKED · settlementAmount=73,950 PEN · <a href="https://sepolia.basescan.org/tx/0x1298bbabfe992f144db5a72c3ba1444f7d13beb868f694a215a6c77c10560b5d" target="_blank" class="ext-link">↗ tx</a></div></div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-line"><div class="tl-dot tl-dot-done">5</div><div class="tl-vline"></div></div>
+          <div class="tl-body"><div class="tl-title">requestRoll(1778008395) — Extend Hedge to 2026-05-05</div><div class="tl-sub">Exporter extended due date · status RATE_LOCKED→ROLL_PENDING · pendingNewDueDate stored on-chain</div></div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-line"><div class="tl-dot tl-dot-purple">✓</div></div>
+          <div class="tl-body" style="padding-bottom:0"><div class="tl-title" style="color:#7c3aed">receiveRolledRate() Delivered — Roll Cost 0 · status ROLLED</div><div class="tl-sub">Rate re-locked at 0.493 · new_due=2026-05-05 · roll_cost=0 (spot re-lock) · <a href="https://sepolia.basescan.org/tx/0x4a626e445dc1d1e036aea72833aaeccdc6e73546db4035065131b8a86c951533" target="_blank" class="ext-link">↗ tx</a></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BENCHMARK DESIGN ── -->
+<section id="benchmark" class="section">
+  <div class="container">
+    <div style="margin-bottom:36px">
+      <div class="section-label">Benchmark Architecture</div>
+      <div class="section-title">Reproducibility beats authority in a distributed system</div>
+      <p class="section-sub">
+        A benchmark that is theoretically better but intermittently unreachable from validator nodes is not a benchmark — it is an aspiration.
+        The system is designed around this constraint.
+      </p>
+    </div>
+
+    <div class="bench-grid" style="margin-bottom:28px">
+      <div class="bench-card live">
+        <span class="bench-badge live">Live Benchmark</span>
+        <div class="bench-card-title">Market Aggregate</div>
+        <div class="bench-card-desc">
+          <strong>Source:</strong> open.er-api.com · BOB/PEN<br/>
+          <strong>Why:</strong> Consistently reachable across all 5 GenLayer validator nodes. Enables <code>strict_eq</code> consensus where every validator independently fetches and returns the same deterministically rounded result.<br/><br/>
+          <strong>Benchmark ID:</strong> <code>MARKET-YYYYMMDD</code><br/>
+          Each lock and roll records the exact source, rate, and timestamp on-chain.
+        </div>
+      </div>
+      <div class="bench-card audit">
+        <span class="bench-badge audit">Audit Reference</span>
+        <div class="bench-card-title">BCRP × BCB Cross</div>
+        <div class="bench-card-desc" style="color:#7c5228">
+          <strong>Source:</strong> Banco Central de Reserva del Perú (PEN/USD series PD04638PD) × Banco Central de Bolivia peg (6.96 BOB/USD fixed since 2012)<br/>
+          <strong>Why retained:</strong> Provides official central-bank rate for reconciliation, audit, and institutional review. Off-chain reference, not the on-chain lock source.<br/><br/>
+          <strong>Architecture path:</strong> A BCRP-accessible proxy would make this the live primary. Treated as an infrastructure upgrade — not a missing product feature.
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px">
+      <div class="section-label" style="margin-bottom:16px">How to read this in the settlement console</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;flex-wrap:wrap" class="bench-field-grid">
+        <div>
+          <div style="font-weight:600;margin-bottom:6px">Fields on every rate event</div>
+          <div class="ic-grid">
+            <div class="ic">
+              <div class="ic-label">Benchmark Used</div>
+              <div class="ic-value" style="font-family:'DM Mono',monospace;font-size:13px">MARKET_AGGREGATE</div>
+              <div class="ic-sub">The actual source used for this lock</div>
+            </div>
+            <div class="ic">
+              <div class="ic-label">Benchmark ID</div>
+              <div class="ic-value" style="font-family:'DM Mono',monospace;font-size:13px">MARKET-20260306</div>
+              <div class="ic-sub">Date-stamped, unique per event</div>
+            </div>
+            <div class="ic">
+              <div class="ic-label">As Of</div>
+              <div class="ic-value" style="font-family:'DM Mono',monospace;font-size:13px">2026-03-06T19:12Z</div>
+              <div class="ic-sub">UTC timestamp from oracle</div>
+            </div>
+            <div class="ic">
+              <div class="ic-label">Audit Reference</div>
+              <div class="ic-value" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--amber)">BCRP×BCB</div>
+              <div class="ic-sub">Off-chain reconciliation rate</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:600;margin-bottom:6px">Hierarchy logic</div>
+          <div class="arch-row">
+            <div class="arch-num">1</div>
+            <div class="arch-content">
+              <div class="arch-title">Try BCRP×BCB (primary)</div>
+              <div class="arch-desc">All validators independently fetch BCRP API and compute cross via fixed BCB peg. If <code>strict_eq</code> consensus → use it, label <code>BCRP_BCB_CROSS</code>.</div>
+            </div>
+          </div>
+          <div class="arch-row">
+            <div class="arch-num">2</div>
+            <div class="arch-content">
+              <div class="arch-title">Fall back to market aggregate</div>
+              <div class="arch-desc">If primary fails consensus (reachability disagreement), relayer immediately retries with <code>request_rate_lock_fallback</code>. No manual intervention. Label <code>MARKET_AGGREGATE</code>.</div>
+            </div>
+          </div>
+          <div class="arch-row" style="margin-bottom:0">
+            <div class="arch-num">✕</div>
+            <div class="arch-content">
+              <div class="arch-title">Error only if both fail</div>
+              <div class="arch-desc">No lock is delivered. Trade stays in <code>RATE_PENDING</code>. Relayer does not retry silently — caller sees an explicit failure with reason.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;background:#f0fdf4;border:1px solid rgba(21,128,61,0.2);border-radius:var(--radius-xl);padding:22px 28px">
+      <div style="font-size:16px;font-weight:600;color:var(--green);margin-bottom:8px">The positioning in one sentence</div>
+      <div style="font-size:15px;line-height:1.7;color:#166534">
+        "GenLayer locks the settlement amount using a reproducible market benchmark available to all validators. Official central-bank rates are retained as an off-chain audit reference for reconciliation and review."
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ORACLE ARCHITECTURE ── -->
+<section id="architecture" class="section" style="background:var(--card)">
+  <div class="container">
+    <div style="margin-bottom:36px">
+      <div class="section-label">Architecture</div>
+      <div class="section-title">Two chains, one settlement lifecycle</div>
+      <p class="section-sub">GenLayer handles oracle consensus. Base Sepolia holds the state machine. A dedicated relayer bridges them.</p>
+    </div>
+
+    <!-- Control flow diagram -->
+    <div style="display:flex;gap:24px;margin-bottom:36px;flex-wrap:wrap">
+      <!-- Main flow -->
+      <div style="flex:1;min-width:300px">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Control Flow</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0">
+          <!-- Trade Contract -->
+          <div style="background:#fff;border:1.5px solid var(--dark);border-radius:var(--radius);padding:16px 24px;width:100%;position:relative">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:4px">Base Sepolia</div>
+            <div style="font-weight:700;font-size:15px">Trade Contract</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px">Holds state machine. Emits events. Accepts rate callbacks from relayer wallet only.</div>
+          </div>
+          <!-- Arrow down -->
+          <div style="display:flex;flex-direction:column;align-items:center;width:48px;margin:0 24px">
+            <div style="width:2px;height:14px;background:var(--muted)"></div>
+            <div style="font-size:14px;color:var(--muted);line-height:1">↓</div>
+            <div style="width:2px;height:14px;background:var(--muted)"></div>
+          </div>
+          <!-- Benchmark Oracle -->
+          <div style="background:#1a1817;border:1.5px solid #3d3b39;border-radius:var(--radius);padding:16px 24px;width:100%">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755;margin-bottom:4px">GenLayer Studionet</div>
+            <div style="font-weight:700;font-size:15px;color:#fff">Benchmark Oracle</div>
+            <div style="font-size:13px;color:#9ca3af;margin-top:4px">5 validators fetch market rate independently. strict_eq consensus. Returns benchmark_type, benchmark_id, rate_18.</div>
+          </div>
+          <!-- Arrow down -->
+          <div style="display:flex;flex-direction:column;align-items:center;width:48px;margin:0 24px">
+            <div style="width:2px;height:14px;background:var(--muted)"></div>
+            <div style="font-size:14px;color:var(--muted);line-height:1">↓</div>
+            <div style="width:2px;height:14px;background:var(--muted)"></div>
+          </div>
+          <!-- Settlement Engine -->
+          <div style="background:#fff;border:1.5px solid var(--dark);border-radius:var(--radius);padding:16px 24px;width:100%">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:4px">Base Sepolia</div>
+            <div style="font-weight:700;font-size:15px">Settlement Engine</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px">Applies rate to invoice. Computes settlement_amount. Stores roll records. State becomes RATE_LOCKED or ROLLED.</div>
+          </div>
+          <!-- Arrow down -->
+          <div style="display:flex;flex-direction:column;align-items:center;width:48px;margin:0 24px">
+            <div style="width:2px;height:14px;background:var(--muted)"></div>
+            <div style="font-size:14px;color:var(--muted);line-height:1">↓</div>
+            <div style="width:2px;height:14px;background:var(--muted)"></div>
+          </div>
+          <!-- Payment Confirmation -->
+          <div style="background:var(--green-light);border:1.5px solid rgba(21,128,61,0.3);border-radius:var(--radius);padding:16px 24px;width:100%">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);margin-bottom:4px">On-chain event</div>
+            <div style="font-weight:700;font-size:15px;color:var(--green)">Payment Confirmation</div>
+            <div style="font-size:13px;color:#166534;margin-top:4px">Settled event emitted with final amount, benchmark reference, and timestamp. Complete audit trail from events alone.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side: optional + relayer -->
+      <div style="width:240px;display:flex;flex-direction:column;gap:16px">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Relayer Bridge</div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px">
+            <div style="font-weight:600;font-size:14px;margin-bottom:6px">fx-settlement-relayer</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.6">Watches Base Sepolia events → calls GenLayer oracle → delivers callbacks. Dedicated wallet. Stateless between runs.</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Optional — not in main flow</div>
+          <div style="background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:16px;opacity:0.7">
+            <div style="font-weight:600;font-size:14px;margin-bottom:6px">Exception Handler</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.6">exceptionFlagged + exceptionPaused flags. Orthogonal to lifecycle. Admin-controlled. Does not affect settlement math.</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Benchmark hierarchy</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--green-light);color:var(--green);padding:1px 6px;border-radius:4px;font-weight:700">1</span>
+              <span style="font-size:13px;">BCRP×BCB cross</span>
+            </div>
+            <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--blue-light);color:var(--blue);padding:1px 6px;border-radius:4px;font-weight:700">2</span>
+              <span style="font-size:13px;">Market aggregate</span>
+            </div>
+            <div style="background:#fff;border:1px dashed var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px;opacity:0.6">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--red-light);color:var(--red);padding:1px 6px;border-radius:4px;font-weight:700">✕</span>
+              <span style="font-size:13px;">No lock delivered</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GenLayer validator consensus -->
+    <div class="console" style="margin-bottom:20px">
+      <div class="console-bar">
+        <div class="cdot cdot-r"></div><div class="cdot cdot-y"></div><div class="cdot cdot-g"></div>
+        <span class="console-title">FxBenchmarkOracle.py — request_rate_lock_fallback result</span>
+      </div>
+      <div class="console-body">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Validator Results — open.er-api.com · BOB/PEN</div>
+        <div class="v-grid" style="margin-bottom:20px">
+          <div class="v-card">
+            <div class="v-id">V1 · 0x57De</div>
+            <div class="v-rate">0.493</div>
+            <div class="v-source">open.er-api</div>
+            <div class="v-agree disagree">disagree</div>
+          </div>
+          <div class="v-card">
+            <div class="v-id">V2 · 0x6528</div>
+            <div class="v-rate">0.493</div>
+            <div class="v-source">open.er-api</div>
+            <div class="v-agree agree">agree</div>
+          </div>
+          <div class="v-card">
+            <div class="v-id">V3 · 0x6d55</div>
+            <div class="v-rate">0.493</div>
+            <div class="v-source">open.er-api</div>
+            <div class="v-agree disagree">disagree</div>
+          </div>
+          <div class="v-card">
+            <div class="v-id">V4 · 0x757F</div>
+            <div class="v-rate">0.493</div>
+            <div class="v-source">open.er-api</div>
+            <div class="v-agree agree">agree</div>
+          </div>
+          <div class="v-card">
+            <div class="v-id">V5 · 0x8729</div>
+            <div class="v-rate">0.493</div>
+            <div class="v-source">open.er-api</div>
+            <div class="v-agree agree">agree</div>
+          </div>
+        </div>
+        <div class="consensus-display">
+          <div>
+            <div class="cons-label">CONSENSUS RATE · BOB/PEN · strict_eq + deterministic round(rate,3)</div>
+            <div class="cons-rate">0.493</div>
+            <div class="cons-method">rate_18 = 493000000000000000 · benchmark_id = MARKET-20260306</div>
+          </div>
+          <div style="text-align:right">
+            <span class="tag tag-green" style="margin-bottom:8px;display:inline-block">MAJORITY_AGREE</span><br/>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:#5a5755">No LLM in rate comparison<br/>Arithmetic only</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;color:#5a5755">
+          Note: 2 validators disagreed in this run — studionet validators are heterogeneous. MAJORITY_AGREE (3/5) is sufficient for a valid lock.
+        </div>
+      </div>
+    </div>
+
+    <!-- Design principles -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px">
+      <div class="section-label" style="margin-bottom:20px">Design Choices</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;flex-wrap:wrap" class="design-grid">
+        <div>
+          <div style="font-weight:700;margin-bottom:6px;font-size:15px">strict_eq, not LLM compare</div>
+          <div style="font-size:13px;color:var(--muted)">All 5 validators independently fetch + compute. Round to nearest 0.001 before comparison. Zero LLM in the numeric path — arithmetic is deterministic, language models are not.</div>
+        </div>
+        <div>
+          <div style="font-weight:700;margin-bottom:6px;font-size:15px">One-way rate lock</div>
+          <div style="font-size:13px;color:var(--muted)">Once RATE_LOCKED, the rate cannot be silently overwritten. A roll is a distinct economic event with a full RollRecord on-chain: prior rate, new rate, prior due, new due, benchmark used, roll cost.</div>
+        </div>
+        <div>
+          <div style="font-weight:700;margin-bottom:6px;font-size:15px">Exception is orthogonal</div>
+          <div style="font-size:13px;color:var(--muted)">exceptionFlagged is a bool flag, not a status branch. Lifecycle continues unless admin explicitly sets exceptionPaused=true. No hidden state blocking settlement.</div>
+        </div>
+        <div>
+          <div style="font-weight:700;margin-bottom:6px;font-size:15px">Dedicated relayer wallet</div>
+          <div style="font-size:13px;color:var(--muted)">oracleRelayer (0x7b97…) is separate from the exporter/deployer wallet (0xe963…). Role separation is enforced at the contract constructor — not a convention.</div>
+        </div>
+        <div>
+          <div style="font-weight:700;margin-bottom:6px;font-size:15px">Machine-readable artifacts</div>
+          <div style="font-size:13px;color:var(--muted)">deployment.json and deployment.env are emitted by the deploy script. The frontend requires no hand-editing to connect to a fresh deployment. All addresses, ABIs, and metadata are in the manifest.</div>
+        </div>
+        <div>
+          <div style="font-weight:700;margin-bottom:6px;font-size:15px">Events reconstruct lifecycle</div>
+          <div style="font-size:13px;color:var(--muted)">RateLockRequested, RateLocked, RollRequested, RateRolled, Settled — a frontend can reconstruct the complete trade lifecycle from events alone. No off-chain state required.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="section">
+  <div class="container">
+    <div style="margin-bottom:36px">
+      <div class="section-label">How It Works</div>
+      <div class="section-title">Create → Lock Rate → Settle or Extend</div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01 —</div>
+        <div class="step-icon" style="background:var(--blue-light);color:var(--blue)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="step-title">Create the Settlement</div>
+        <div class="step-desc">Exporter deploys TradeFxSettlement with invoice amount (BOB), due date, exporter, and importer addresses. The <em>oracleRelayer</em> address is locked at construction — the contract will only accept rate callbacks from this wallet.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02 —</div>
+        <div class="step-icon" style="background:var(--green-light);color:var(--green)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="step-title">Lock the Rate</div>
+        <div class="step-desc">Exporter calls <code>requestRateLock()</code>. The relayer detects the event, calls FxBenchmarkOracle on GenLayer (trying BCRP first, falling back to market aggregate), then delivers <code>receiveRate()</code> with the benchmark metadata. Settlement amount is computed and locked.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03 —</div>
+        <div class="step-icon" style="background:var(--amber-light);color:var(--amber)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </div>
+        <div class="step-title">Settle or Extend Hedge</div>
+        <div class="step-desc">If the due date approaches, either party calls <code>requestRoll(newDueDate)</code>. The relayer fetches a fresh benchmark and delivers <code>receiveRolledRate()</code>. Roll cost is 0 (spot re-lock). The RollRecord is stored permanently on-chain.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-logo">
+          <span style="background:rgba(255,255,255,0.1);border-radius:6px;padding:2px 8px;font-family:'DM Mono',monospace;font-size:11px">FX</span>
+          Trade Finance × GenLayer
+        </div>
+        <div class="footer-note">
+          A prototype demonstrating GenLayer as a distributed control plane for FX-settled cross-border invoices.
+          Benchmark: market aggregate (live) · BCRP×BCB (audit reference).
+          Deployed on Base Sepolia + GenLayer Studionet. Not production ready.
+        </div>
+      </div>
+      <div>
+        <div class="footer-links">
+          <a href="https://genlayer.com" target="_blank">GenLayer</a>
+          <a href="https://docs.genlayer.com" target="_blank">GenLayer Docs</a>
+          <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank">TradeFxSettlement ↗</a>
+          <a href="https://github.com/acastellana/trade-finance-genlayer" target="_blank">GitHub ↗</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      TradeFxSettlement: 0x5231a9B232abD0d8533D7046994235baEb01696d · FxBenchmarkOracle: 0x3B8501bAcaB70dedbC6f8B8EFCB888ba66cbc73e · Chain: Base Sepolia 84532
+    </div>
+  </div>
+</footer>
+
+<style>
+  @media(max-width:700px){
+    .console-main-grid { grid-template-columns: 1fr !important; }
+    .bench-field-grid { grid-template-columns: 1fr !important; }
+    .design-grid { grid-template-columns: 1fr !important; }
+  }
+</style>
+
+</body>
+</html>
