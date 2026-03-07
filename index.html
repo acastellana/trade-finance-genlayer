@@ -337,19 +337,45 @@
       <span class="dot"></span>
       Live on Base Sepolia · GenLayer Studionet
     </div>
-    <h1>Lock and coordinate FX settlement for cross-border invoices</h1>
-    <p class="hero-sub">Benchmark-based settlement coordination for cross-border invoices.</p>
-    <div class="hero-value">
-      Instead of each party calculating FX settlement separately, GenLayer produces <strong>one shared settlement result</strong> for the trade.
+
+    <!-- Trade story first -->
+    <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <span style="font-size:28px;">🇧🇴</span>
+      <span style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;letter-spacing:-0.3px;color:var(--dark)">Bolivia</span>
+      <span style="font-size:20px;color:var(--muted)">→</span>
+      <span style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;letter-spacing:-0.3px;color:var(--dark)">Peru</span>
+      <span style="font-size:28px;">🇵🇪</span>
     </div>
+
+    <h1>Lock and coordinate FX settlement for cross-border invoices</h1>
+
+    <div style="max-width:580px;margin-bottom:24px;">
+      <p style="font-size:17px;color:var(--muted);line-height:1.7;margin-bottom:10px;">
+        A Bolivian quinoa exporter invoices in BOB.<br>
+        A Peruvian distributor pays in PEN.
+      </p>
+      <p style="font-size:17px;color:var(--dark);line-height:1.7;font-weight:500;">
+        GenLayer locks the FX benchmark and produces a single settlement amount for the trade — updated automatically if the payment date changes.
+      </p>
+    </div>
+
+    <!-- Quick numbers -->
+    <div style="display:inline-flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:14px 22px;margin-bottom:28px;">
+      <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;">150,000 BOB</span>
+      <span style="color:var(--muted);font-size:16px;">→</span>
+      <span style="font-family:'DM Mono',monospace;font-size:14px;color:var(--muted);">0.493 PEN/BOB</span>
+      <span style="color:var(--muted);font-size:16px;">→</span>
+      <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--green);">73,950 PEN</span>
+    </div>
+
     <div class="hero-flow">
-      <div class="hf-step">Create Invoice</div>
+      <div class="hf-step">Invoice</div>
       <div class="hf-arrow">→</div>
       <div class="hf-step">Lock FX Benchmark</div>
       <div class="hf-arrow">→</div>
-      <div class="hf-step">Extend Date if Needed</div>
+      <div class="hf-step">Payment Date Moves</div>
       <div class="hf-arrow">→</div>
-      <div class="hf-step">Final Settlement</div>
+      <div class="hf-step">Settlement Updated</div>
     </div>
   </div>
 </section>
