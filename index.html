@@ -209,6 +209,8 @@
     .proof-check { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
     .proof-text { font-size: 13px; line-height: 1.5; color: var(--muted); }
     .proof-text strong { color: var(--dark); }
+    .proof-state { display: none; }
+    .proof-state.show { display: block; }
 
     /* ── CONSOLE ── */
     .console-section { padding: 56px 0; background: var(--card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
@@ -515,7 +517,7 @@
             <div class="tl-tag amber">SHIPMENT CHECK</div>
             <div class="tl-title">Shipment Check</div>
             <div class="tl-detail" style="margin-bottom:14px;">
-              When goods arrive, the importer confirms or contests the shipment timing. If contested, InternetCourt evaluates the one disputed fact — did the shipment cross on time? — and returns a verdict to the same settlement engine.
+              Deterministic settlement handles the normal case. If the importer accepts the shipment, settlement proceeds immediately. Only when shipment timing is contested — and only then — InternetCourt evaluates the one disputed fact and returns a verdict to the same settlement engine. The contract maps that verdict to Release, Refund, or Manual Review.
             </div>
 
             <!-- State selector -->
@@ -610,18 +612,18 @@
                 </div>
                 <div class="sc-ev-card">
                   <div class="sc-ev-label exporter">Exporter Evidence</div>
-                  <div class="sc-ev-text">Pre-shipment inspection — dated 2026-04-05. No customs crossing event. Goods remained in warehouse after inspection.</div>
+                  <div class="sc-ev-text">Customs exit stamp — Desaguadero, <strong>2026-04-05T14:30 La_Paz</strong>. Exporter claims pre-departure clearance stamp as proof of crossing. Importer disputes: this is a pre-clearance record, not a gate-crossing event.</div>
                   <div class="sc-ev-img-wrap">
                     <img src="evidence/qc-coop-2026-0004/court_sheet_a.png" class="sc-ev-img" alt="Court Sheet A" onerror="this.src='evidence/images/02_SGS_PreShipment_Inspection.jpg'" />
-                    <div class="sc-ev-caption">court_sheet_a.png · <a href="https://gateway.pinata.cloud/ipfs/QmUkY5HDe4GyQ14qAaHJgwq8Jd3txkj9AMAYM1MDdsXeoF" target="_blank">QmUkY5…eoF ↗</a></div>
+                    <div class="sc-ev-caption">court_sheet_a.png · <a href="https://gateway.pinata.cloud/ipfs/QmUkY5HDe4GyQ14qAaHJgwq8Jd3txkj9AMAYM1MDdsXeoF" target="_blank">QmUkY5…eoF ↗</a> · Doc type: customs exit stamp</div>
                   </div>
                 </div>
                 <div class="sc-ev-card">
                   <div class="sc-ev-label importer">Importer Evidence</div>
-                  <div class="sc-ev-text">Bill of lading — <strong>2026-04-09T09:15 La_Paz</strong>. Four days after deadline. Clear customs-crossing timestamp.</div>
+                  <div class="sc-ev-text">Border gate event record — Desaguadero, <strong>2026-04-09T09:15 La_Paz</strong>. Four days after deadline. The gate system records the physical crossing event, not the pre-clearance.</div>
                   <div class="sc-ev-img-wrap">
                     <img src="evidence/qc-coop-2026-0004/court_sheet_b.png" class="sc-ev-img" alt="Court Sheet B" onerror="this.src='evidence/images/03_COSCO_Bill_of_Lading.jpg'" />
-                    <div class="sc-ev-caption">court_sheet_b.png · <a href="https://gateway.pinata.cloud/ipfs/QmeKRDftoK1vQY3ggGMvYA6TYxeYoaDTAEYE366iLk5xVv" target="_blank">QmeKRD…xVv ↗</a></div>
+                    <div class="sc-ev-caption">court_sheet_b.png · <a href="https://gateway.pinata.cloud/ipfs/QmeKRDftoK1vQY3ggGMvYA6TYxeYoaDTAEYE366iLk5xVv" target="_blank">QmeKRD…xVv ↗</a> · Doc type: border gate event record</div>
                   </div>
                 </div>
               </div>
@@ -630,7 +632,7 @@
                 <div class="sc-verdict-row">
                   <div class="sc-verdict-badge vfalse"><span class="sc-verdict-dot"></span> FALSE — LATE SHIPMENT</div>
                 </div>
-                <div class="sc-ev-text">Bill of lading shows crossing on 2026-04-09 — four days after deadline. Exporter pre-inspection does not prove a customs crossing. Shipment was late.</div>
+                <div class="sc-ev-text">Border gate event record shows physical crossing on 2026-04-09 — four days after deadline. Exporter's pre-clearance stamp does not constitute a crossing event per guideline. Importer's gate record is preferred. Shipment was late.</div>
               </div>
               <div class="sc-outcome">
                 <div class="sc-ev-label outcome">Settlement Consequence</div>
@@ -665,18 +667,18 @@
                 </div>
                 <div class="sc-ev-card">
                   <div class="sc-ev-label exporter">Exporter Evidence</div>
-                  <div class="sc-ev-text">Lab analysis report — confirms quality only. No shipment reference, location, or crossing timestamp.</div>
+                  <div class="sc-ev-text">Customs exit receipt — Desaguadero, date field present but shipment reference number is illegible. Cannot confirm this record relates to QC-COOP-2026-0005.</div>
                   <div class="sc-ev-img-wrap">
                     <img src="evidence/qc-coop-2026-0005/court_sheet_a.png" class="sc-ev-img" alt="Court Sheet A" onerror="this.src='evidence/images/04_BureauVeritas_Lab_Analysis.jpg'" />
-                    <div class="sc-ev-caption">court_sheet_a.png · <a href="https://gateway.pinata.cloud/ipfs/QmPFLuuPaJ2XDLnTfBv54K3FHU2uPCRCV7eYTDW22gUx8B" target="_blank">QmPFLu…Ux8B ↗</a></div>
+                    <div class="sc-ev-caption">court_sheet_a.png · <a href="https://gateway.pinata.cloud/ipfs/QmPFLuuPaJ2XDLnTfBv54K3FHU2uPCRCV7eYTDW22gUx8B" target="_blank">QmPFLu…Ux8B ↗</a> · Doc type: customs exit receipt (ref illegible)</div>
                   </div>
                 </div>
                 <div class="sc-ev-card">
                   <div class="sc-ev-label importer">Importer Evidence</div>
-                  <div class="sc-ev-text">Arrival inspection — date field illegible. Could read Apr 04 or Apr 14. Crossing date cannot be determined.</div>
+                  <div class="sc-ev-text">Border gate event record — Desaguadero, date field partially illegible. Could read 2026-04-04 or 2026-04-14. Shipment reference visible but crossing timestamp is ambiguous.</div>
                   <div class="sc-ev-img-wrap">
                     <img src="evidence/qc-coop-2026-0005/court_sheet_b.png" class="sc-ev-img" alt="Court Sheet B" onerror="this.src='evidence/images/05_Arrival_Inspection_Report.jpg'" />
-                    <div class="sc-ev-caption">court_sheet_b.png · <a href="https://gateway.pinata.cloud/ipfs/Qmf2h7M5om5d2xeNAxigW2mHd5n2QxTMeb9mc5zTFuPcdb" target="_blank">Qmf2h7…Pcdb ↗</a></div>
+                    <div class="sc-ev-caption">court_sheet_b.png · <a href="https://gateway.pinata.cloud/ipfs/Qmf2h7M5om5d2xeNAxigW2mHd5n2QxTMeb9mc5zTFuPcdb" target="_blank">Qmf2h7…Pcdb ↗</a> · Doc type: border gate event record (date ambiguous)</div>
                   </div>
                 </div>
               </div>
@@ -685,7 +687,7 @@
                 <div class="sc-verdict-row">
                   <div class="sc-verdict-badge vund"><span class="sc-verdict-dot"></span> UNDETERMINED — INSUFFICIENT EVIDENCE</div>
                 </div>
-                <div class="sc-ev-text">Neither document provides a reliable customs-crossing timestamp. Evidence insufficient to determine TRUE or FALSE.</div>
+                <div class="sc-ev-text">Exporter's customs receipt cannot be matched to this shipment. Importer's gate record has an illegible date. Both documents are from the correct source types but neither yields a verifiable crossing timestamp. Evidence insufficient to determine TRUE or FALSE.</div>
               </div>
               <div class="sc-outcome">
                 <div class="sc-ev-label outcome">Settlement Consequence</div>
@@ -737,33 +739,79 @@
 
       </div><!-- /tl-steps -->
 
-      <!-- ── RIGHT: PROOF SIDEBAR ── -->
+      <!-- ── RIGHT: PROOF SIDEBAR (dynamic) ── -->
       <div class="tl-proof">
-        <div class="tl-proof-title">What this demonstrates</div>
-        <div class="proof-row">
-          <div class="proof-check">✓</div>
-          <div class="proof-text"><strong>One trade, one lifecycle.</strong> Benchmark lock, shipment check, and settlement are steps in the same contract — not separate products.</div>
+        <div class="tl-proof-title" id="proof-title">Active contract</div>
+
+        <!-- ACCEPTED / default -->
+        <div id="proof-accepted" class="proof-state show">
+          <div class="proof-row">
+            <div class="proof-check" style="color:var(--green);">✓</div>
+            <div class="proof-text"><strong>Standard settlement path.</strong> Benchmark locked, amount computed, shipment accepted — no exception branch needed.</div>
+          </div>
+          <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Mono',monospace;font-size:11px;line-height:1.8;">
+            <div style="color:var(--muted);margin-bottom:6px;">contract</div>
+            <a href="https://sepolia.basescan.org/address/0x5231a9B232abD0d8533D7046994235baEb01696d" target="_blank" style="color:var(--blue);word-break:break-all;text-decoration:none;">0x5231a9B232abD0d8533D7046994235baEb01696d ↗</a>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">state</div>
+            <span style="color:var(--purple);font-weight:600;">ROLLED → pending shipment acceptance</span>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6;">These are parallel example outcomes of the same lifecycle pattern — each deployed to a separate contract to produce a verifiable on-chain proof for each branch.</div>
         </div>
-        <div class="proof-row">
-          <div class="proof-check">✓</div>
-          <div class="proof-text"><strong>InternetCourt is an exception path.</strong> It activates only when deterministic logic can no longer continue. The verdict feeds back into the same settlement engine.</div>
-        </div>
-        <div class="proof-row">
-          <div class="proof-check">✓</div>
-          <div class="proof-text"><strong>The court decides one fact only.</strong> Did the shipment cross on time? The contract maps that answer to Release, Refund, or Manual Review.</div>
-        </div>
-        <div class="proof-row">
-          <div class="proof-check">✓</div>
-          <div class="proof-text"><strong>Every state transition has a tx hash.</strong> Full audit trail on Basescan for all three contested scenarios.</div>
-        </div>
-        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
-          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Three scenarios — on-chain</div>
-          <div style="display:flex;flex-direction:column;gap:5px;">
-            <a href="https://sepolia.basescan.org/address/0x78D5Aef1D3c20DBE1ddbbdCFa9b4D8d408CbcB17" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);text-decoration:none;">↗ TIMELY · 0x78D5…cB17</a>
-            <a href="https://sepolia.basescan.org/address/0xA464D16a6547F4A26097081928D9D95Ea3F26CDa" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--red);text-decoration:none;">↗ LATE · 0xA464…CDa</a>
-            <a href="https://sepolia.basescan.org/address/0x6A05444f8Ea647b1b86ed159bC2a3b363d46c0f8" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--amber);text-decoration:none;">↗ UNDETERMINED · 0x6A05…60f8</a>
+
+        <!-- TIMELY -->
+        <div id="proof-timely" class="proof-state" style="display:none;">
+          <div class="proof-row">
+            <div class="proof-check" style="color:var(--green);">✓</div>
+            <div class="proof-text"><strong>Contested, resolved TIMELY.</strong> InternetCourt found the customs exit receipt authoritative. Settlement resumed.</div>
+          </div>
+          <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Mono',monospace;font-size:11px;line-height:1.8;">
+            <div style="color:var(--muted);margin-bottom:4px;">contract</div>
+            <a href="https://sepolia.basescan.org/address/0x78D5Aef1D3c20DBE1ddbbdCFa9b4D8d408CbcB17" target="_blank" style="color:var(--green);word-break:break-all;text-decoration:none;">0x78D5…cB17 ↗</a>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">shipmentStatus</div>
+            <span style="color:var(--green);font-weight:600;">TIMELY</span>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">finalizeAfterShipment tx</div>
+            <a href="https://sepolia.basescan.org/tx/0xb2bce11cf2c7526fe8f2fbe4ce8d76f2814e61bfccfb53cf37f8943fe689bd33" target="_blank" style="color:var(--blue);text-decoration:none;">0xb2bc…d33 ↗</a>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">settlement</div>
+            <span style="color:var(--green);font-weight:600;">73,950 PEN → exporter</span>
           </div>
         </div>
+
+        <!-- LATE -->
+        <div id="proof-late" class="proof-state" style="display:none;">
+          <div class="proof-row">
+            <div class="proof-check" style="color:var(--red);">✕</div>
+            <div class="proof-text"><strong>Contested, resolved LATE.</strong> Border gate event record showed crossing 4 days after deadline. Settlement cancelled inline.</div>
+          </div>
+          <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Mono',monospace;font-size:11px;line-height:1.8;">
+            <div style="color:var(--muted);margin-bottom:4px;">contract</div>
+            <a href="https://sepolia.basescan.org/address/0xA464D16a6547F4A26097081928D9D95Ea3F26CDa" target="_blank" style="color:var(--red);word-break:break-all;text-decoration:none;">0xA464…CDa ↗</a>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">shipmentStatus</div>
+            <span style="color:var(--red);font-weight:600;">LATE</span>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">resolveVerdict + refund tx</div>
+            <a href="https://sepolia.basescan.org/tx/0x77ef285367430a70853234ffa057be969c21a2e1d7938cf79692aae36b3843dd" target="_blank" style="color:var(--blue);text-decoration:none;">0x77ef…3dd ↗</a>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">settlement</div>
+            <span style="color:var(--red);font-weight:600;">73,950 PEN → refunded to importer</span>
+          </div>
+        </div>
+
+        <!-- UNDETERMINED -->
+        <div id="proof-undetermined" class="proof-state" style="display:none;">
+          <div class="proof-row">
+            <div class="proof-check" style="color:var(--amber);">⊘</div>
+            <div class="proof-text"><strong>Contested, UNDETERMINED.</strong> Both documents from the same source family — neither yielded a verifiable crossing timestamp. Contract frozen.</div>
+          </div>
+          <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Mono',monospace;font-size:11px;line-height:1.8;">
+            <div style="color:var(--muted);margin-bottom:4px;">contract</div>
+            <a href="https://sepolia.basescan.org/address/0x6A05444f8Ea647b1b86ed159bC2a3b363d46c0f8" target="_blank" style="color:var(--amber);word-break:break-all;text-decoration:none;">0x6A05…60f8 ↗</a>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">shipmentStatus</div>
+            <span style="color:var(--amber);font-weight:600;">UNDETERMINED</span>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">resolveVerdict tx</div>
+            <a href="https://sepolia.basescan.org/tx/0xb026c6e3b33730b1d5cc51aaa5e57331b72db2c5ae4481c676ed2b53a2f9c1a9" target="_blank" style="color:var(--blue);text-decoration:none;">0xb026…1a9 ↗</a>
+            <div style="color:var(--muted);margin-top:8px;margin-bottom:2px;">settlement</div>
+            <span style="color:var(--amber);font-weight:600;">frozen — awaiting arbitrator</span>
+          </div>
+        </div>
+
       </div>
 
     </div><!-- /tl-outer -->
@@ -983,10 +1031,9 @@
     document.querySelectorAll('.sc-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    // Court panels
+    // Court panels (accepted is separate element)
     document.getElementById('sc-accepted').classList.remove('show');
     document.querySelectorAll('.sc-court-panel').forEach(p => p.classList.remove('show'));
-
     if (state === 'accepted') {
       document.getElementById('sc-accepted').classList.add('show');
     } else {
@@ -997,12 +1044,25 @@
     STATES.forEach(s => document.getElementById('outcome-' + s).classList.remove('show'));
     document.getElementById('outcome-' + state).classList.add('show');
 
-    // Step 5 dot color
+    // Step 5 dot
     const dot = document.getElementById('step5-dot');
     dot.className = 'tl-dot step5';
     if (state === 'timely' || state === 'accepted') dot.classList.add('timely');
     else if (state === 'late') dot.classList.add('late');
     else if (state === 'undetermined') dot.classList.add('manual');
+
+    // Proof sidebar — follows selected branch
+    document.querySelectorAll('.proof-state').forEach(p => p.style.display = 'none');
+    document.getElementById('proof-' + state).style.display = 'block';
+
+    // Proof title
+    const titles = {
+      accepted: 'Active contract',
+      timely: 'On-chain proof — TIMELY',
+      late: 'On-chain proof — LATE',
+      undetermined: 'On-chain proof — UNDETERMINED'
+    };
+    document.getElementById('proof-title').textContent = titles[state];
   }
 </script>
 
