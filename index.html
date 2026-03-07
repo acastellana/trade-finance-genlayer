@@ -874,57 +874,63 @@
     <div class="arch-inner">
       <!-- Left: branching flow -->
       <div class="arch-flow">
-        <svg viewBox="0 0 280 370" width="280" height="370" xmlns="http://www.w3.org/2000/svg"
-             style="font-family:'DM Mono',monospace;overflow:visible;">
-          <!-- vertical spine connectors -->
-          <line x1="140" y1="38"  x2="140" y2="60"  stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-          <line x1="140" y1="98"  x2="140" y2="120" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-          <line x1="140" y1="158" x2="140" y2="180" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-          <!-- down to T-junction -->
-          <line x1="140" y1="218" x2="140" y2="238" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+        <svg viewBox="0 0 280 380" width="280" height="380" xmlns="http://www.w3.org/2000/svg"
+             style="font-family:'DM Mono',monospace;overflow:visible;display:block;">
+
+          <!-- ── connectors (use border color #e5e3e0) ── -->
+          <!-- Trade Contract → Benchmark Oracle -->
+          <line x1="140" y1="38"  x2="140" y2="62"  stroke="#e5e3e0" stroke-width="2"/>
+          <!-- Benchmark Oracle → Settlement Engine -->
+          <line x1="140" y1="100" x2="140" y2="124" stroke="#e5e3e0" stroke-width="2"/>
+          <!-- Settlement Engine → Shipment Check -->
+          <line x1="140" y1="162" x2="140" y2="186" stroke="#e5e3e0" stroke-width="2"/>
+          <!-- Shipment Check → T-junction -->
+          <line x1="140" y1="224" x2="140" y2="248" stroke="#e5e3e0" stroke-width="2"/>
           <!-- horizontal split bar -->
-          <line x1="58"  y1="238" x2="222" y2="238" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-          <!-- drops to branch nodes -->
-          <line x1="58"  y1="238" x2="58"  y2="258" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-          <line x1="222" y1="238" x2="222" y2="258" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="60"  y1="248" x2="220" y2="248" stroke="#e5e3e0" stroke-width="2"/>
+          <!-- drops into branch nodes -->
+          <line x1="60"  y1="248" x2="60"  y2="268" stroke="#e5e3e0" stroke-width="2"/>
+          <line x1="220" y1="248" x2="220" y2="268" stroke="#e5e3e0" stroke-width="2"/>
           <!-- drops below branch nodes -->
-          <line x1="58"  y1="288" x2="58"  y2="312" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-          <line x1="222" y1="288" x2="222" y2="312" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="60"  y1="298" x2="60"  y2="322" stroke="#e5e3e0" stroke-width="2"/>
+          <line x1="220" y1="298" x2="220" y2="322" stroke="#e5e3e0" stroke-width="2"/>
           <!-- horizontal rejoin bar -->
-          <line x1="58"  y1="312" x2="222" y2="312" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="60"  y1="322" x2="220" y2="322" stroke="#e5e3e0" stroke-width="2"/>
           <!-- center drop to Outcome -->
-          <line x1="140" y1="312" x2="140" y2="332" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="140" y1="322" x2="140" y2="346" stroke="#e5e3e0" stroke-width="2"/>
           <!-- verdict label -->
-          <text x="228" y="304" fill="rgba(255,255,255,0.25)" font-size="9">verdict ↙</text>
+          <text x="225" y="314" fill="#b0aba6" font-size="9">verdict ↙</text>
 
-          <!-- Trade Contract -->
-          <rect x="10" y="10" width="260" height="28" rx="6" fill="#1a1a1a" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-          <text x="140" y="29" text-anchor="middle" fill="#f5f5f5" font-size="12" font-weight="600">Trade Contract</text>
+          <!-- ── NODES ── -->
 
-          <!-- Benchmark Oracle -->
-          <rect x="10" y="60" width="260" height="28" rx="6" fill="#141414" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-          <text x="140" y="79" text-anchor="middle" fill="#a3a3a3" font-size="12">Benchmark Oracle</text>
+          <!-- Trade Contract (dark) -->
+          <rect x="10" y="10" width="260" height="28" rx="6" fill="#1a1817" stroke="#1a1817"/>
+          <text x="140" y="29" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="600">Trade Contract</text>
 
-          <!-- Settlement Engine -->
-          <rect x="10" y="120" width="260" height="28" rx="6" fill="#141414" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-          <text x="140" y="139" text-anchor="middle" fill="#a3a3a3" font-size="12">Settlement Engine</text>
+          <!-- Benchmark Oracle (card) -->
+          <rect x="10" y="62" width="260" height="28" rx="6" fill="#f7f7f5" stroke="#e5e3e0"/>
+          <text x="140" y="81" text-anchor="middle" fill="#1a1817" font-size="12">Benchmark Oracle</text>
+
+          <!-- Settlement Engine (card) -->
+          <rect x="10" y="124" width="260" height="28" rx="6" fill="#f7f7f5" stroke="#e5e3e0"/>
+          <text x="140" y="143" text-anchor="middle" fill="#1a1817" font-size="12">Settlement Engine</text>
 
           <!-- Shipment Check (amber) -->
-          <rect x="10" y="180" width="260" height="28" rx="6" fill="rgba(180,83,9,0.12)" stroke="rgba(180,83,9,0.3)" stroke-width="1"/>
-          <text x="140" y="199" text-anchor="middle" fill="#d97706" font-size="12" font-weight="600">Shipment Check</text>
+          <rect x="10" y="186" width="260" height="28" rx="6" fill="#fffbeb" stroke="rgba(180,83,9,0.3)"/>
+          <text x="140" y="205" text-anchor="middle" fill="#b45309" font-size="12" font-weight="600">Shipment Check</text>
 
-          <!-- Accepted (green, left) -->
-          <rect x="8"   y="258" width="100" height="30" rx="6" fill="rgba(21,128,61,0.12)" stroke="rgba(21,128,61,0.3)" stroke-width="1"/>
-          <text x="58"  y="278" text-anchor="middle" fill="#86efac" font-size="11">&#x2713; Accepted</text>
+          <!-- ✓ Accepted (green, left) -->
+          <rect x="8"  y="268" width="104" height="30" rx="6" fill="#dcfce7" stroke="rgba(21,128,61,0.25)"/>
+          <text x="60" y="288" text-anchor="middle" fill="#15803d" font-size="11">&#x2713; Accepted</text>
 
           <!-- If contested → InternetCourt (red, right) -->
-          <rect x="152" y="258" width="120" height="30" rx="6" fill="rgba(220,38,38,0.1)" stroke="rgba(220,38,38,0.25)" stroke-width="1"/>
-          <text x="212" y="269" text-anchor="middle" fill="#fca5a5" font-size="10">If contested &#x2192;</text>
-          <text x="212" y="282" text-anchor="middle" fill="#fca5a5" font-size="10">InternetCourt</text>
+          <rect x="152" y="268" width="120" height="30" rx="6" fill="rgba(220,38,38,0.06)" stroke="rgba(220,38,38,0.25)" stroke-dasharray="4 2"/>
+          <text x="212" y="279" text-anchor="middle" fill="#dc2626" font-size="10">If contested &#x2192;</text>
+          <text x="212" y="292" text-anchor="middle" fill="#dc2626" font-size="10">InternetCourt</text>
 
-          <!-- Outcome -->
-          <rect x="10" y="332" width="260" height="28" rx="6" fill="#1a1a1a" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-          <text x="140" y="351" text-anchor="middle" fill="#f5f5f5" font-size="11">Outcome: Release &#xb7; Refund &#xb7; Review</text>
+          <!-- Outcome (dark) -->
+          <rect x="10" y="346" width="260" height="28" rx="6" fill="#1a1817" stroke="#1a1817"/>
+          <text x="140" y="365" text-anchor="middle" fill="#ffffff" font-size="11">Outcome: Release &#xb7; Refund &#xb7; Review</text>
         </svg>
       </div>
             <!-- Right: contract addresses -->
