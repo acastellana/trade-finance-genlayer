@@ -352,6 +352,8 @@ contract TradeFxSettlement {
         fundedAmount = settlementAmount;
         settlementToken.safeTransferFrom(msg.sender, address(this), settlementAmount);
         status = Status.FUNDED;
+        // Anchor contest window to shipment-check time (when importer locks funds).
+        contestDeadline = block.timestamp + 7 days;
         emit Funded(msg.sender, settlementAmount, block.timestamp);
     }
 
