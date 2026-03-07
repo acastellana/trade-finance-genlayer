@@ -874,40 +874,60 @@
     <div class="arch-inner">
       <!-- Left: branching flow -->
       <div class="arch-flow">
-        <div class="af-node hi">Trade Contract</div>
-        <div class="af-line"></div>
-        <div class="af-node">Benchmark Oracle</div>
-        <div class="af-line"></div>
-        <div class="af-node">Settlement Engine</div>
-        <div class="af-line"></div>
-        <div class="af-node" style="background:var(--amber-light);border-color:rgba(180,83,9,0.25);color:var(--amber);">Shipment Check</div>
-        <!-- Branch row -->
-        <div style="display:flex;align-items:flex-start;gap:0;margin-top:0;">
-          <!-- left branch: accepted -->
-          <div style="display:flex;flex-direction:column;align-items:center;">
-            <div style="width:2px;height:14px;background:var(--border);"></div>
-            <div class="af-node accepted" style="font-size:11px;padding:5px 10px;">✓ Accepted</div>
-            <div style="width:2px;height:14px;background:var(--border);"></div>
-          </div>
-          <!-- horizontal connector to right branch -->
-          <div style="display:flex;flex-direction:column;justify-content:flex-start;padding-top:14px;">
-            <div style="width:32px;height:2px;background:var(--border);"></div>
-          </div>
-          <!-- right branch: contested → InternetCourt -->
-          <div style="display:flex;flex-direction:column;align-items:flex-start;">
-            <div style="height:14px;"></div>
-            <div class="af-node court" style="font-size:11px;padding:5px 10px;white-space:nowrap;">If contested → InternetCourt</div>
-            <div style="display:flex;align-items:center;gap:4px;padding:3px 0 3px 10px;">
-              <div style="width:2px;height:14px;background:var(--border);"></div>
-            </div>
-            <div style="padding-left:10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:4px;">verdict returned ↙</div>
-          </div>
-        </div>
-        <div class="af-line"></div>
-        <div class="af-node hi" style="font-size:12px;">Outcome: Release · Refund · Manual Review</div>
-      </div>
+        <svg viewBox="0 0 280 370" width="280" height="370" xmlns="http://www.w3.org/2000/svg"
+             style="font-family:'DM Mono',monospace;overflow:visible;">
+          <!-- vertical spine connectors -->
+          <line x1="140" y1="38"  x2="140" y2="60"  stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="140" y1="98"  x2="140" y2="120" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="140" y1="158" x2="140" y2="180" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <!-- down to T-junction -->
+          <line x1="140" y1="218" x2="140" y2="238" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <!-- horizontal split bar -->
+          <line x1="58"  y1="238" x2="222" y2="238" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <!-- drops to branch nodes -->
+          <line x1="58"  y1="238" x2="58"  y2="258" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="222" y1="238" x2="222" y2="258" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <!-- drops below branch nodes -->
+          <line x1="58"  y1="288" x2="58"  y2="312" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="222" y1="288" x2="222" y2="312" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <!-- horizontal rejoin bar -->
+          <line x1="58"  y1="312" x2="222" y2="312" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <!-- center drop to Outcome -->
+          <line x1="140" y1="312" x2="140" y2="332" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <!-- verdict label -->
+          <text x="228" y="304" fill="rgba(255,255,255,0.25)" font-size="9">verdict ↙</text>
 
-      <!-- Right: contract addresses -->
+          <!-- Trade Contract -->
+          <rect x="10" y="10" width="260" height="28" rx="6" fill="#1a1a1a" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+          <text x="140" y="29" text-anchor="middle" fill="#f5f5f5" font-size="12" font-weight="600">Trade Contract</text>
+
+          <!-- Benchmark Oracle -->
+          <rect x="10" y="60" width="260" height="28" rx="6" fill="#141414" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+          <text x="140" y="79" text-anchor="middle" fill="#a3a3a3" font-size="12">Benchmark Oracle</text>
+
+          <!-- Settlement Engine -->
+          <rect x="10" y="120" width="260" height="28" rx="6" fill="#141414" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+          <text x="140" y="139" text-anchor="middle" fill="#a3a3a3" font-size="12">Settlement Engine</text>
+
+          <!-- Shipment Check (amber) -->
+          <rect x="10" y="180" width="260" height="28" rx="6" fill="rgba(180,83,9,0.12)" stroke="rgba(180,83,9,0.3)" stroke-width="1"/>
+          <text x="140" y="199" text-anchor="middle" fill="#d97706" font-size="12" font-weight="600">Shipment Check</text>
+
+          <!-- Accepted (green, left) -->
+          <rect x="8"   y="258" width="100" height="30" rx="6" fill="rgba(21,128,61,0.12)" stroke="rgba(21,128,61,0.3)" stroke-width="1"/>
+          <text x="58"  y="278" text-anchor="middle" fill="#86efac" font-size="11">&#x2713; Accepted</text>
+
+          <!-- If contested → InternetCourt (red, right) -->
+          <rect x="152" y="258" width="120" height="30" rx="6" fill="rgba(220,38,38,0.1)" stroke="rgba(220,38,38,0.25)" stroke-width="1"/>
+          <text x="212" y="269" text-anchor="middle" fill="#fca5a5" font-size="10">If contested &#x2192;</text>
+          <text x="212" y="282" text-anchor="middle" fill="#fca5a5" font-size="10">InternetCourt</text>
+
+          <!-- Outcome -->
+          <rect x="10" y="332" width="260" height="28" rx="6" fill="#1a1a1a" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+          <text x="140" y="351" text-anchor="middle" fill="#f5f5f5" font-size="11">Outcome: Release &#xb7; Refund &#xb7; Review</text>
+        </svg>
+      </div>
+            <!-- Right: contract addresses -->
       <div class="arch-cards">
         <div class="arch-card">
           <div class="arch-card-lbl">TradeFxSettlement · Base Sepolia 84532</div>
