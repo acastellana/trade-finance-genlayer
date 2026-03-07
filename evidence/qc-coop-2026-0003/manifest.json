@@ -1,0 +1,23 @@
+{
+  "case_id": "qc-coop-2026-0003",
+  "scenario": "A",
+  "label": "TIMELY SHIPMENT",
+  "verdict": "TRUE",
+  "consequence": "settlement_proceeds",
+  "trade_ref": "INV-BOL-2026-0003",
+  "contract_clause": "Shipment must cross Bolivian border before 2026-04-05T00:00:00Z",
+  "court_question": "Did the shipment cross the Bolivian border on or before 2026-04-05?",
+  "exporter_evidence": {
+    "label": "Exporter Evidence",
+    "description": "Bill of lading signed by COSCO at Santa Cruz customs — 2026-04-03T14:22:00Z",
+    "file": "03_COSCO_Bill_of_Lading.jpg",
+    "ipfs_cid": "QmTIMELY3aBillOfLadingCOSCO2026Apr03"
+  },
+  "importer_evidence": {
+    "label": "Importer Evidence",
+    "description": "Importer's internal logistics note citing 'expected late April' — pre-dispute misunderstanding, not proof of late shipment",
+    "file": "07_Purchase_Contract_Excerpt.jpg",
+    "ipfs_cid": "QmCONTRACT7PurchaseExcerpt2026"
+  },
+  "settlement_consequence": "Settlement proceeds as agreed. 73,950 PEN transferred to exporter."
+}

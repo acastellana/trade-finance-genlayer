@@ -1,0 +1,23 @@
+{
+  "case_id": "qc-coop-2026-0004",
+  "scenario": "B",
+  "label": "LATE SHIPMENT",
+  "verdict": "FALSE",
+  "consequence": "settlement_cancelled",
+  "trade_ref": "INV-BOL-2026-0004",
+  "contract_clause": "Shipment must cross Bolivian border before 2026-04-05T00:00:00Z",
+  "court_question": "Did the shipment cross the Bolivian border on or before 2026-04-05?",
+  "exporter_evidence": {
+    "label": "Exporter Evidence",
+    "description": "SGS pre-shipment inspection report — 2026-04-02, but goods remained in warehouse per SGS addendum",
+    "file": "02_SGS_PreShipment_Inspection.jpg",
+    "ipfs_cid": "QmSGS2PreShipmentInspection2026"
+  },
+  "importer_evidence": {
+    "label": "Importer Evidence",
+    "description": "COSCO bill of lading clearly dated 2026-04-09 — four days after deadline",
+    "file": "03_COSCO_Bill_of_Lading.jpg",
+    "ipfs_cid": "QmCOSCO3BillOfLading2026Apr09LATE"
+  },
+  "settlement_consequence": "Settlement cancelled. Importer receives full refund of 73,950 PEN."
+}

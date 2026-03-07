@@ -289,6 +289,77 @@
     .footer-links a:hover { color: #fff; }
     .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; font-family: 'DM Mono', monospace; font-size: 10px; color: #4b5563; }
 
+    /* ══════════════════════
+       CONTESTED SHIPMENT SECTION
+    ══════════════════════ */
+    .court-section { padding: 64px 0; background: var(--dark); border-top: 1px solid rgba(255,255,255,0.08); }
+    .court-section .section-label { color: rgba(255,255,255,0.3); }
+    .court-section h2 { font-size: clamp(22px, 3vw, 34px); font-weight: 700; letter-spacing: -0.6px; color: #fff; margin-bottom: 8px; }
+    .court-intro { font-size: 15px; color: rgba(255,255,255,0.5); margin-bottom: 36px; max-width: 600px; line-height: 1.65; }
+    .court-intro strong { color: #fff; }
+
+    /* Scenario tabs */
+    .sc-tabs { display: flex; gap: 6px; margin-bottom: 28px; flex-wrap: wrap; }
+    .sc-tab { flex: 1; min-width: 140px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-xl); padding: 12px 16px; cursor: pointer; text-align: left; transition: all 0.15s; }
+    .sc-tab:hover { background: rgba(255,255,255,0.09); }
+    .sc-tab.active { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); }
+    .sc-tab-badge { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px; }
+    .sc-tab-badge.timely { color: #86efac; }
+    .sc-tab-badge.late   { color: #fca5a5; }
+    .sc-tab-badge.undetermined { color: #fbbf24; }
+    .sc-tab-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); }
+
+    /* Scenario panel */
+    .sc-panel { display: none; }
+    .sc-panel.active { display: block; }
+
+    /* Shared first steps */
+    .sc-common-steps { display: flex; gap: 0; margin-bottom: 24px; flex-wrap: nowrap; overflow-x: auto; }
+    .sc-step { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; font-family: 'DM Mono', monospace; white-space: nowrap; color: rgba(255,255,255,0.6); flex-shrink: 0; }
+    .sc-step.done { color: #86efac; background: rgba(134,239,172,0.08); border-color: rgba(134,239,172,0.2); }
+    .sc-step.active { color: #fff; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+    .sc-step.contested { color: #fca5a5; background: rgba(252,165,165,0.08); border-color: rgba(252,165,165,0.25); }
+    .sc-arrow { color: rgba(255,255,255,0.2); padding: 0 6px; display: flex; align-items: center; font-size: 14px; flex-shrink: 0; }
+
+    /* Disputed marker */
+    .sc-contested-marker { background: rgba(252,165,165,0.08); border: 1px solid rgba(252,165,165,0.25); border-radius: var(--radius-xl); padding: 14px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .sc-contested-dot { width: 10px; height: 10px; border-radius: 50%; background: #fca5a5; flex-shrink: 0; animation: pulse 2s infinite; }
+    .sc-contested-text { font-size: 14px; color: rgba(255,255,255,0.7); }
+    .sc-contested-text strong { color: #fca5a5; }
+
+    /* Main grid: clause + evidence + court */
+    .sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .sc-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: var(--radius-xl); padding: 18px 20px; }
+    .sc-card-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
+    .sc-card-label.clause  { color: rgba(147,197,253,0.8); }
+    .sc-card-label.exporter { color: rgba(134,239,172,0.8); }
+    .sc-card-label.importer { color: rgba(252,211,77,0.8); }
+    .sc-card-label.question { color: rgba(196,181,253,0.8); }
+    .sc-card-label.verdict  { color: rgba(255,255,255,0.5); }
+    .sc-card-label.consequence { color: rgba(255,255,255,0.5); }
+    .sc-card-text { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+    .sc-card-text strong { color: rgba(255,255,255,0.85); }
+
+    /* Evidence thumbnail */
+    .sc-evidence { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 10px; margin-top: 10px; }
+    .sc-evidence-img { width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px; opacity: 0.7; }
+    .sc-evidence-caption { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 6px; line-height: 1.5; }
+
+    /* Verdict badge */
+    .sc-verdict-badge { display: inline-flex; align-items: center; gap: 7px; border-radius: 9999px; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .sc-verdict-badge.true  { background: rgba(134,239,172,0.15); border: 1px solid rgba(134,239,172,0.3); color: #86efac; }
+    .sc-verdict-badge.false { background: rgba(252,165,165,0.15); border: 1px solid rgba(252,165,165,0.3); color: #fca5a5; }
+    .sc-verdict-badge.undetermined { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.25); color: #fbbf24; }
+    .sc-verdict-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .sc-verdict-badge.true  .sc-verdict-dot { background: #86efac; }
+    .sc-verdict-badge.false .sc-verdict-dot { background: #fca5a5; }
+    .sc-verdict-badge.undetermined .sc-verdict-dot { background: #fbbf24; }
+
+    /* Consequence */
+    .sc-consequence { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: var(--radius-xl); padding: 16px 20px; }
+    .sc-consequence-text { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+    .sc-consequence-text strong { font-size: 15px; color: #fff; }
+
     /* ── RESPONSIVE ── */
     @media(max-width: 720px) {
       nav { display: none; }
@@ -751,7 +822,7 @@
           <div class="arch-card-lbl">FxBenchmarkOracle · GenLayer Studionet</div>
           <div class="arch-addr"><a href="https://explorer-studio.genlayer.com/transactions/0x8085b03f9fc857785a242e64c7b00051790f04847de1b22e4b163ae5318f71c1" target="_blank">0x3B8501bAcaB70dedbC6f8B8EFCB888ba66cbc73e ↗</a></div>
         </div>
-        <div class="arch-note">If parties disagree — shipment evidence or fraud — <strong>InternetCourt</strong> can resolve on-chain. It activates only when both parties cannot agree.</div>
+        <div class="arch-note">If parties disagree — shipment evidence or fraud — <strong>InternetCourt</strong> can resolve on-chain. It activates only when both parties cannot agree. If shipment timing is contested, InternetCourt evaluates the evidence and returns the fact needed for settlement to continue.</div>
       </div>
     </div>
   </div>
@@ -813,6 +884,240 @@
   </div>
 </section>
 
+
+<!-- ══════════════════════════════════════════
+     CONTESTED SHIPMENT
+══════════════════════════════════════════ -->
+<section class="court-section" id="disputed">
+  <div class="container">
+    <div class="section-label">Exception Path</div>
+    <h2>Contested Shipment</h2>
+    <p class="court-intro">
+      If shipment timing is contested, <strong>InternetCourt</strong> evaluates the evidence and returns the one fact needed for settlement to continue.
+      This is an exception path — the deterministic FX settlement flow above handles the common case.
+    </p>
+
+    <!-- Scenario tabs -->
+    <div class="sc-tabs">
+      <button class="sc-tab active" onclick="showScenario('A', this)">
+        <div class="sc-tab-badge timely">Scenario A</div>
+        <div class="sc-tab-title">TIMELY SHIPMENT</div>
+      </button>
+      <button class="sc-tab" onclick="showScenario('B', this)">
+        <div class="sc-tab-badge late">Scenario B</div>
+        <div class="sc-tab-title">LATE SHIPMENT</div>
+      </button>
+      <button class="sc-tab" onclick="showScenario('C', this)">
+        <div class="sc-tab-badge undetermined">Scenario C</div>
+        <div class="sc-tab-title">INSUFFICIENT EVIDENCE</div>
+      </button>
+    </div>
+
+    <!-- ── SCENARIO A: TIMELY SHIPMENT ── -->
+    <div class="sc-panel active" id="sc-A">
+
+      <!-- Shared first steps -->
+      <div class="sc-common-steps">
+        <div class="sc-step done">RATE_LOCKED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step done">FUNDED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step contested">SHIPMENT CONTESTED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step active">COURT VERDICT</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step">SETTLEMENT</div>
+      </div>
+
+      <!-- Contested marker -->
+      <div class="sc-contested-marker">
+        <div class="sc-contested-dot"></div>
+        <div class="sc-contested-text">
+          Importer filed <strong>ShipmentContested</strong> — claims goods arrived after payment deadline.
+          InternetCourt case <code style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,0.5)">qc-coop-2026-0003</code> created.
+        </div>
+      </div>
+
+      <div class="sc-grid">
+        <!-- Contract clause -->
+        <div class="sc-card">
+          <div class="sc-card-label clause">Contract Clause</div>
+          <div class="sc-card-text">Shipment must cross Bolivian border <strong>on or before 2026-04-05</strong>.</div>
+        </div>
+        <!-- Court question -->
+        <div class="sc-card">
+          <div class="sc-card-label question">Court Question</div>
+          <div class="sc-card-text"><strong>Did the shipment cross the Bolivian border on or before 2026-04-05?</strong></div>
+        </div>
+        <!-- Exporter evidence -->
+        <div class="sc-card">
+          <div class="sc-card-label exporter">Exporter Evidence</div>
+          <div class="sc-card-text">COSCO bill of lading — signed at Santa Cruz customs 2026-04-03. Shipment crossed before deadline.</div>
+          <div class="sc-evidence">
+            <img src="evidence/images/03_COSCO_Bill_of_Lading.jpg" alt="COSCO Bill of Lading" class="sc-evidence-img" />
+            <div class="sc-evidence-caption">03_COSCO_Bill_of_Lading.jpg · IPFS: QmTIMELY3a…</div>
+          </div>
+        </div>
+        <!-- Importer evidence -->
+        <div class="sc-card">
+          <div class="sc-card-label importer">Importer Evidence</div>
+          <div class="sc-card-text">Purchase contract excerpt citing "expected late April" — a pre-dispute logistical note, not proof of late shipment.</div>
+          <div class="sc-evidence">
+            <img src="evidence/images/07_Purchase_Contract_Excerpt.jpg" alt="Purchase Contract" class="sc-evidence-img" />
+            <div class="sc-evidence-caption">07_Purchase_Contract_Excerpt.jpg · IPFS: QmCONTRACT7…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verdict -->
+      <div class="sc-card" style="margin-bottom:12px;">
+        <div class="sc-card-label verdict">Verdict</div>
+        <div class="sc-verdict-badge true"><span class="sc-verdict-dot"></span> TRUE</div>
+        <div class="sc-card-text">Bill of lading confirms crossing on Apr 03 — before the Apr 05 deadline. Importer's document does not contradict this. Shipment was timely.</div>
+      </div>
+
+      <!-- Settlement consequence -->
+      <div class="sc-consequence">
+        <div class="sc-card-label consequence" style="margin-bottom:8px;">Settlement Consequence</div>
+        <div class="sc-consequence-text"><strong>Settlement proceeds as agreed.</strong> The contract maps verdict TRUE → settlement continues. 73,950 PEN transferred to exporter.</div>
+      </div>
+    </div>
+
+    <!-- ── SCENARIO B: LATE SHIPMENT ── -->
+    <div class="sc-panel" id="sc-B">
+
+      <div class="sc-common-steps">
+        <div class="sc-step done">RATE_LOCKED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step done">FUNDED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step contested">SHIPMENT CONTESTED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step active">COURT VERDICT</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step">CANCELLED</div>
+      </div>
+
+      <div class="sc-contested-marker">
+        <div class="sc-contested-dot"></div>
+        <div class="sc-contested-text">
+          Importer filed <strong>ShipmentContested</strong> — claims bill of lading date is after the payment deadline.
+          InternetCourt case <code style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,0.5)">qc-coop-2026-0004</code> created.
+        </div>
+      </div>
+
+      <div class="sc-grid">
+        <div class="sc-card">
+          <div class="sc-card-label clause">Contract Clause</div>
+          <div class="sc-card-text">Shipment must cross Bolivian border <strong>on or before 2026-04-05</strong>.</div>
+        </div>
+        <div class="sc-card">
+          <div class="sc-card-label question">Court Question</div>
+          <div class="sc-card-text"><strong>Did the shipment cross the Bolivian border on or before 2026-04-05?</strong></div>
+        </div>
+        <div class="sc-card">
+          <div class="sc-card-label exporter">Exporter Evidence</div>
+          <div class="sc-card-text">SGS pre-shipment inspection — Apr 02. However SGS addendum confirms goods remained in warehouse after inspection.</div>
+          <div class="sc-evidence">
+            <img src="evidence/images/02_SGS_PreShipment_Inspection.jpg" alt="SGS Pre-Shipment Inspection" class="sc-evidence-img" />
+            <div class="sc-evidence-caption">02_SGS_PreShipment_Inspection.jpg · IPFS: QmSGS2Pre…</div>
+          </div>
+        </div>
+        <div class="sc-card">
+          <div class="sc-card-label importer">Importer Evidence</div>
+          <div class="sc-card-text">COSCO bill of lading clearly dated <strong>2026-04-09</strong> — four days after the contractual deadline.</div>
+          <div class="sc-evidence">
+            <img src="evidence/images/03_COSCO_Bill_of_Lading.jpg" alt="COSCO Bill of Lading - Late" class="sc-evidence-img" />
+            <div class="sc-evidence-caption">03_COSCO_Bill_of_Lading.jpg · IPFS: QmCOSCO3LATE…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-card" style="margin-bottom:12px;">
+        <div class="sc-card-label verdict">Verdict</div>
+        <div class="sc-verdict-badge false"><span class="sc-verdict-dot"></span> FALSE</div>
+        <div class="sc-card-text">Bill of lading is unambiguous — Apr 09 is after the Apr 05 deadline. Exporter's pre-inspection report does not prove crossing. Shipment was late.</div>
+      </div>
+
+      <div class="sc-consequence">
+        <div class="sc-card-label consequence" style="margin-bottom:8px;">Settlement Consequence</div>
+        <div class="sc-consequence-text"><strong>Settlement cancelled.</strong> The contract maps verdict FALSE → cancelAndRefund. Importer receives full refund of 73,950 PEN.</div>
+      </div>
+    </div>
+
+    <!-- ── SCENARIO C: UNDETERMINED ── -->
+    <div class="sc-panel" id="sc-C">
+
+      <div class="sc-common-steps">
+        <div class="sc-step done">RATE_LOCKED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step done">FUNDED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step contested">SHIPMENT CONTESTED</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step active">COURT VERDICT</div>
+        <div class="sc-arrow">→</div>
+        <div class="sc-step" style="color:#fbbf24;border-color:rgba(251,191,36,0.25);">MANUAL REVIEW</div>
+      </div>
+
+      <div class="sc-contested-marker">
+        <div class="sc-contested-dot"></div>
+        <div class="sc-contested-text">
+          Importer filed <strong>ShipmentContested</strong> — date on arrival inspection is unclear.
+          InternetCourt case <code style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,0.5)">qc-coop-2026-0005</code> created.
+        </div>
+      </div>
+
+      <div class="sc-grid">
+        <div class="sc-card">
+          <div class="sc-card-label clause">Contract Clause</div>
+          <div class="sc-card-text">Shipment must cross Bolivian border <strong>on or before 2026-04-05</strong>.</div>
+        </div>
+        <div class="sc-card">
+          <div class="sc-card-label question">Court Question</div>
+          <div class="sc-card-text"><strong>Did the shipment cross the Bolivian border on or before 2026-04-05?</strong></div>
+        </div>
+        <div class="sc-card">
+          <div class="sc-card-label exporter">Exporter Evidence</div>
+          <div class="sc-card-text">Bureau Veritas lab analysis — confirms product quality, but contains no shipment date or customs crossing data.</div>
+          <div class="sc-evidence">
+            <img src="evidence/images/04_BureauVeritas_Lab_Analysis.jpg" alt="Bureau Veritas Lab Analysis" class="sc-evidence-img" />
+            <div class="sc-evidence-caption">04_BureauVeritas_Lab_Analysis.jpg · IPFS: QmBV4Lab…</div>
+          </div>
+        </div>
+        <div class="sc-card">
+          <div class="sc-card-label importer">Importer Evidence</div>
+          <div class="sc-card-text">Arrival inspection report — date field partially illegible. Could read Apr 04 or Apr 14. Cannot determine crossing date from this document.</div>
+          <div class="sc-evidence">
+            <img src="evidence/images/05_Arrival_Inspection_Report.jpg" alt="Arrival Inspection Report" class="sc-evidence-img" />
+            <div class="sc-evidence-caption">05_Arrival_Inspection_Report.jpg · IPFS: QmARRIVAL5…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-card" style="margin-bottom:12px;">
+        <div class="sc-card-label verdict">Verdict</div>
+        <div class="sc-verdict-badge undetermined"><span class="sc-verdict-dot"></span> UNDETERMINED</div>
+        <div class="sc-card-text">Neither party provided a document that unambiguously confirms or denies the crossing date. Evidence is insufficient to return TRUE or FALSE.</div>
+      </div>
+
+      <div class="sc-consequence">
+        <div class="sc-card-label consequence" style="margin-bottom:8px;">Settlement Consequence</div>
+        <div class="sc-consequence-text"><strong>Case escalated to MANUAL_REVIEW.</strong> Settlement paused. A human arbitrator must review the physical documents and deliver a binding finding before the contract can proceed.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  function showScenario(id, btn) {
+    document.querySelectorAll('.sc-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sc-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('sc-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
 
 <!-- FOOTER -->
 <footer>

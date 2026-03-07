@@ -1,0 +1,23 @@
+{
+  "case_id": "qc-coop-2026-0005",
+  "scenario": "C",
+  "label": "INSUFFICIENT EVIDENCE",
+  "verdict": "UNDETERMINED",
+  "consequence": "manual_review",
+  "trade_ref": "INV-BOL-2026-0005",
+  "contract_clause": "Shipment must cross Bolivian border before 2026-04-05T00:00:00Z",
+  "court_question": "Did the shipment cross the Bolivian border on or before 2026-04-05?",
+  "exporter_evidence": {
+    "label": "Exporter Evidence",
+    "description": "Bureau Veritas lab analysis — product quality only, no shipment date visible",
+    "file": "04_BureauVeritas_Lab_Analysis.jpg",
+    "ipfs_cid": "QmBV4LabAnalysis2026NoDate"
+  },
+  "importer_evidence": {
+    "label": "Importer Evidence",
+    "description": "Arrival inspection report — date partially illegible, could be Apr 04 or Apr 14",
+    "file": "05_Arrival_Inspection_Report.jpg",
+    "ipfs_cid": "QmARRIVAL5InspectionIllegible2026"
+  },
+  "settlement_consequence": "Case escalated to MANUAL_REVIEW. Settlement paused pending human arbitrator."
+}
