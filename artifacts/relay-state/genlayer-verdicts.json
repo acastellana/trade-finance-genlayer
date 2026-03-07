@@ -2,9 +2,25 @@
   "0x6a1231e490d4ce37c8a47234425e67a3bac25514": {
     "caseId": "qc-coop-2026-0003",
     "oracleTxHash": "0xbb43cb860ed99f65d4428beb16753ef6b86ff4096bcdec5c8ac6a0744797fd0b",
-    "oracleAddress": null,
-    "verdict": "",
-    "reason": "",
-    "timestamp": 1772910469
+    "oracleAddress": "0x1B0Dc09a8F1c99A150427357488b73eC71bD0Db8",
+    "verdict": null,
+    "reason": null,
+    "timestamp": 1772911662
+  },
+  "0xb627dc05e9579c50c1593ccd0dfd5be38c5c323b": {
+    "caseId": "qc-coop-2026-0004",
+    "oracleTxHash": "0xf6fc46f6f24f6a1063cd27155bd8a6c9ea963aed89d0f37730bc05b66a1b9be0",
+    "oracleAddress": "0x107db91E2E8c4f0b2076B479312fF48318c28828",
+    "verdict": null,
+    "reason": null,
+    "timestamp": 1772911672
+  },
+  "0x4cf051ecace62a44aea4de2cceccb472e30577ad": {
+    "caseId": "qc-coop-2026-0005",
+    "oracleTxHash": "0xcb53f74069ed63bdd3f8669cac66db5b41795efbadfb9e35481d14466e1be56a",
+    "oracleAddress": "0xf1dB1EEF17b48F104d6CB530784D95E551DC8682",
+    "verdict": null,
+    "reason": null,
+    "timestamp": 1772911683
   }
 }

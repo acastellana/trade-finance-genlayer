@@ -4,6 +4,17 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+// InternetCourt integration
+interface IInternetCourtFactory {
+    function registerCase() external returns (uint256 id);
+}
+
+interface IResolutionTarget {
+    function setResolution(uint8 verdict, string calldata reasoning) external;
+    function getOracleType() external view returns (bytes32);
+    function getOracleArgs() external view returns (bytes memory);
+}
+
 /**
  * @title TradeFxSettlement v3
  * @notice Benchmark-based FX settlement engine with token settlement rail.
@@ -163,9 +174,22 @@ contract TradeFxSettlement {
     string  public shipmentManifestCid;
     string  public shipmentGuidelineVersion;
     string  public shipmentStatement;
+    string  public shipmentCourtSheetACid;  // IPFS CID — exporter evidence
+    string  public shipmentCourtSheetBCid;  // IPFS CID — importer evidence
     uint256 public shipmentVerdictAt;
     string  public shipmentVerdictReason;
     bool    public shipmentReviewRequired;
+
+    // ─── InternetCourt integration ────────────────────────────────────────────
+
+    /// @notice InternetCourtFactory address. Set at construction; zero = IC disabled.
+    address public courtFactory;
+
+    /// @notice Oracle type identifier for the relay's ORACLE_REGISTRY.
+    bytes32 public constant ORACLE_TYPE = keccak256("TRADE_FINANCE_V1");
+
+    /// @notice IC case ID assigned by the factory when registerCase() is called.
+    uint256 public icCaseId;
 
     // ─── Events ──────────────────────────────────────────────────────────────
 
@@ -256,7 +280,8 @@ contract TradeFxSettlement {
         bytes32 _settlementCurrency,
         uint256 _dueDate,
         string memory _invoiceRef,
-        address _bridgeReceiver
+        address _bridgeReceiver,
+        address _courtFactory
     ) {
         require(_exporter != address(0),        "TFX: zero exporter");
         require(_importer != address(0),        "TFX: zero importer");
@@ -286,6 +311,7 @@ contract TradeFxSettlement {
         contestDeadline    = type(uint256).max;
 
         bridgeReceiver     = _bridgeReceiver; // may be address(0) for relayer-only mode
+        courtFactory       = _courtFactory;   // InternetCourtFactory; zero = IC disabled
 
         emit TradeCreated(_exporter, _importer, _invoiceAmount, _dueDate, _invoiceRef);
     }
@@ -487,12 +513,14 @@ contract TradeFxSettlement {
      * @notice Importer contests shipment timing. Pauses settlement.
      *         Reverts after contestDeadline — buyer cannot hold up indefinitely.
      *
-     * @param manifestCid      IPFS CID of evidence manifest
+     * @param courtSheetACid   IPFS CID of exporter court sheet (ANB customs exit)
+     * @param courtSheetBCid   IPFS CID of importer court sheet (SUNAT border gate)
      * @param statement        Factual statement submitted to the court
      * @param guidelineVersion Frozen evaluation guideline version
      */
     function contestShipment(
-        string calldata manifestCid,
+        string calldata courtSheetACid,
+        string calldata courtSheetBCid,
         string calldata statement,
         string calldata guidelineVersion
     )
@@ -511,14 +539,23 @@ contract TradeFxSettlement {
             "TFX: contest deadline passed - shipment deemed accepted"
         );
 
-        shipmentStatus           = ShipmentStatus.CONTESTED;
-        shipmentManifestCid      = manifestCid;
-        shipmentStatement        = statement;
-        shipmentGuidelineVersion = guidelineVersion;
-        shipmentReviewRequired   = true;
-        exceptionPaused          = true;
+        shipmentStatus            = ShipmentStatus.CONTESTED;
+        shipmentCourtSheetACid    = courtSheetACid;
+        shipmentCourtSheetBCid    = courtSheetBCid;
+        shipmentStatement         = statement;
+        shipmentGuidelineVersion  = guidelineVersion;
+        shipmentReviewRequired    = true;
+        exceptionPaused           = true;
 
-        emit ShipmentContested(msg.sender, manifestCid, statement, contestDeadline, block.timestamp);
+        emit ShipmentContested(msg.sender, courtSheetACid, statement, contestDeadline, block.timestamp);
+
+        // Register with InternetCourt if factory is configured.
+        // This emits DisputeRequested on the factory, triggering the relay to deploy
+        // the GenLayer oracle. The relay reads getOracleType() + getOracleArgs() from
+        // this contract to determine which oracle to deploy and with what arguments.
+        if (courtFactory != address(0)) {
+            icCaseId = IInternetCourtFactory(courtFactory).registerCase();
+        }
     }
 
     /**
@@ -552,6 +589,46 @@ contract TradeFxSettlement {
         // Execute resolution logic
         _resolveShipmentVerdict(verdict, "LZ-GENLAYER", reasoning);
     }
+
+    // ── IResolutionTarget — called by InternetCourtFactory ───────────────────
+
+    /**
+     * @notice Verdict delivery from InternetCourtFactory after GenLayer oracle finalizes.
+     *         Only the registered courtFactory may call this.
+     *         Verdict codes (set by ShipmentDeadlineCourt.py): 1=TIMELY, 2=LATE, 3=UNDETERMINED.
+     */
+    function setResolution(uint8 verdict, string calldata reasoning) external {
+        require(msg.sender == courtFactory, "TFX: only court factory");
+        require(courtFactory != address(0), "TFX: IC not configured");
+        _resolveShipmentVerdict(verdict, invoiceRef, reasoning);
+    }
+
+    /**
+     * @notice Oracle type for the relay's ORACLE_REGISTRY. Identifies ShipmentDeadlineCourt.py.
+     */
+    function getOracleType() external pure returns (bytes32) {
+        return ORACLE_TYPE; // keccak256("TRADE_FINANCE_V1")
+    }
+
+    /**
+     * @notice ABI-encoded constructor args for ShipmentDeadlineCourt.py.
+     *         Schema (matches relay's ORACLE_REGISTRY["TRADE_FINANCE_V1"].decode):
+     *           (string case_id, address settlement_contract, string statement,
+     *            string guideline_version, string court_sheet_a_cid, string court_sheet_b_cid)
+     *         The relay appends bridge_sender, target_chain_eid, target_contract from its config.
+     */
+    function getOracleArgs() external view returns (bytes memory) {
+        return abi.encode(
+            invoiceRef,               // case_id
+            address(this),            // settlement_contract (for message encoding)
+            shipmentStatement,        // statement
+            shipmentGuidelineVersion, // guideline_version
+            shipmentCourtSheetACid,   // court_sheet_a_cid
+            shipmentCourtSheetBCid    // court_sheet_b_cid
+        );
+    }
+
+    // ── Relayer fallback (oracleRelayer or courtContract direct call) ─────────
 
     function resolveShipmentVerdict(
         uint8 verdict,

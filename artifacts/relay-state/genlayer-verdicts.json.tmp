@@ -6,5 +6,21 @@
     "verdict": "",
     "reason": "",
     "timestamp": 1772910469
+  },
+  "0xb627dc05e9579c50c1593ccd0dfd5be38c5c323b": {
+    "caseId": "qc-coop-2026-0004",
+    "oracleTxHash": "0xf6fc46f6f24f6a1063cd27155bd8a6c9ea963aed89d0f37730bc05b66a1b9be0",
+    "oracleAddress": null,
+    "verdict": "",
+    "reason": "",
+    "timestamp": 1772910902
+  },
+  "0x4cf051ecace62a44aea4de2cceccb472e30577ad": {
+    "caseId": "qc-coop-2026-0005",
+    "oracleTxHash": "0xcb53f74069ed63bdd3f8669cac66db5b41795efbadfb9e35481d14466e1be56a",
+    "oracleAddress": null,
+    "verdict": "",
+    "reason": "",
+    "timestamp": 1772910986
   }
 }

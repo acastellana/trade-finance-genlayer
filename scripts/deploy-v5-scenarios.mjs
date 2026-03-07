@@ -34,6 +34,7 @@ const MOCK_BOB        = "0xbd0ed9bc00b4dc90096bc3af7b3eb1080b4bc166";
 const MOCK_PEN        = "0x08bc87f6511913caa4e127c5e4e91618a37a9719";
 const ORACLE_RELAYER  = "0x7b9797c4c2DA625b120A27AD2c07bECB7A0E30fa";
 const BRIDGE_RECEIVER = "0xc3e6aE892A704c875bF74Df46eD873308db15d82"; // InternetCourt BridgeReceiver Base Sepolia
+const COURT_FACTORY   = "0xd533cB0B52E85b3F506b6f0c28b8f6bc4E449Dda"; // InternetCourtFactory v2 Base Sepolia
 const EXPORTER        = "0xe9630ba0e3cc2d3BFC58fbE1Bbde478f06E4CE87";
 const IMPORTER        = "0x942C20d078f7417aD67E96714310DA8068850B77";
 
@@ -58,26 +59,29 @@ const importerW = createWalletClient({ chain: baseSepolia, transport, account: i
 const relayerW  = createWalletClient({ chain: baseSepolia, transport, account: relayerAcct });
 
 // ── Scenario definitions ──────────────────────────────────────────────────────
-const MANIFEST_CIDS = JSON.parse(readFileSync(`${ROOT}/artifacts/manifest_cids.json`, "utf8"));
+const SHEET_CIDS = JSON.parse(readFileSync(`${ROOT}/artifacts/new_court_sheet_cids_v2.json`, "utf8"));
 
 const SCENARIOS = [
   {
-    label:       "A_TIMELY",
-    caseId:      "qc-coop-2026-0003",
-    invoiceRef:  "QC-COOP-2026-0003",
-    manifestCid: MANIFEST_CIDS["qc-coop-2026-0003"],
+    label:      "A_TIMELY",
+    caseId:     "qc-coop-2026-0003",
+    invoiceRef: "QC-COOP-2026-0003",
+    sheetACid:  SHEET_CIDS["qc-coop-2026-0003"].a,
+    sheetBCid:  SHEET_CIDS["qc-coop-2026-0003"].b,
   },
   {
-    label:       "B_LATE",
-    caseId:      "qc-coop-2026-0004",
-    invoiceRef:  "QC-COOP-2026-0004",
-    manifestCid: MANIFEST_CIDS["qc-coop-2026-0004"],
+    label:      "B_LATE",
+    caseId:     "qc-coop-2026-0004",
+    invoiceRef: "QC-COOP-2026-0004",
+    sheetACid:  SHEET_CIDS["qc-coop-2026-0004"].a,
+    sheetBCid:  SHEET_CIDS["qc-coop-2026-0004"].b,
   },
   {
-    label:       "C_UNDETERMINED",
-    caseId:      "qc-coop-2026-0005",
-    invoiceRef:  "QC-COOP-2026-0005",
-    manifestCid: MANIFEST_CIDS["qc-coop-2026-0005"],
+    label:      "C_UNDETERMINED",
+    caseId:     "qc-coop-2026-0005",
+    invoiceRef: "QC-COOP-2026-0005",
+    sheetACid:  SHEET_CIDS["qc-coop-2026-0005"].a,
+    sheetBCid:  SHEET_CIDS["qc-coop-2026-0005"].b,
   },
 ];
 
@@ -100,7 +104,7 @@ const TFX_ABI = parseAbi([
   "function requestRateLock()",
   "function receiveRate(uint256 rate, bytes32 benchmarkType, bytes32 benchmarkId, uint256 asOfTimestamp)",
   "function fundSettlement()",
-  "function contestShipment(string manifestCid, string statement, string guidelineVersion)",
+  "function contestShipment(string courtSheetACid, string courtSheetBCid, string statement, string guidelineVersion)",
   "function status() view returns (uint8)",
   "function shipmentStatus() view returns (uint8)",
   "function fundedAmount() view returns (uint256)",
@@ -134,6 +138,7 @@ function deployContract(invoiceRef) {
     SOURCE_CURRENCY:      "BOB",
     SETTLEMENT_CURRENCY:  "PEN",
     BRIDGE_RECEIVER:      BRIDGE_RECEIVER,
+    COURT_FACTORY:        COURT_FACTORY,
   };
 
   mkdirSync(`${ROOT}/base-sepolia/artifacts`, { recursive: true });
@@ -205,7 +210,7 @@ async function runScenario(scen) {
   console.log("\n  [5] contestShipment (importer)...");
   result.txs.contestShipment = await importerW.writeContract({
     address: contractAddr, abi: TFX_ABI, functionName: "contestShipment",
-    args: [scen.manifestCid, STATEMENT, GUIDELINE]
+    args: [scen.sheetACid, scen.sheetBCid, STATEMENT, GUIDELINE]
   }).then(h => waitTx(h, "contestShipment")).then(r => r.transactionHash);
 
   // Verify CONTESTED

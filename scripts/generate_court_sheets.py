@@ -238,6 +238,14 @@ def draw_anb_exit(d, due_no, timestamp_str, exporter, containers,
     d.rectangle([x0, cy, x0+pw, cy+44], outline=status_color, width=2)
     text(d, x0+8, cy+6, "FECHA Y HORA DE DESPACHO ADUANERO:", font(9, bold=True), (80,80,80))
     text(d, x0+8, cy+22, timestamp_str, font(18, bold=True, mono=True), status_color)
+    # Disambiguate month in plain text to avoid AI vision misreads (e.g. 04→05)
+    import re as _re
+    _m = _re.search(r"2026-(\d{2})-(\d{2})", timestamp_str)
+    if _m:
+        _months = ["","JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
+        _month_abbr = _months[int(_m.group(1))] if 1 <= int(_m.group(1)) <= 12 else ""
+        _day = _m.group(2)
+        text(d, x0+pw-130, cy+22, f"{_day} {_month_abbr} 2026", font(12, bold=True), (100,100,100))
     cy += 52
 
     # Fields grid
@@ -316,10 +324,19 @@ def draw_sunat_gate(d, event_id, timestamp_str, consignee, containers,
     # Timestamp — key fact
     if timestamp_str:
         ts_color = LATE_R if "2026-04-06" in timestamp_str else TIMELY_G
+        # Disambiguate month in plain text to avoid AI vision misreads
+        import re as _re2
+        _m2 = _re2.search(r"2026-(\d{2})-(\d{2})", timestamp_str)
+        _sunat_month_label = ""
+        if _m2:
+            _months2 = ["","JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
+            _sunat_month_label = f"{_m2.group(2)} {_months2[int(_m2.group(1))] if 1 <= int(_m2.group(1)) <= 12 else ''} 2026"
         fill_rect(d, x0, cy, pw, 44, (255, 248, 248))
         d.rectangle([x0, cy, x0+pw, cy+44], outline=ts_color, width=2)
         text(d, x0+8, cy+6, "FECHA Y HORA DE CRUCE DE FRONTERA (GATE EVENT):", font(9, bold=True), (80,80,80))
         text(d, x0+8, cy+22, timestamp_str, font(18, bold=True, mono=True), ts_color)
+        if _sunat_month_label:
+            text(d, x0+pw-130, cy+22, _sunat_month_label, font(12, bold=True), (100,100,100))
         if timestamp_note:
             text(d, x0+8+320, cy+28, timestamp_note, font(8), (150,80,80))
     else:
