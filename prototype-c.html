@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade Finance Dashboard — Prototype C</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-left: #1a1817;
+      --bg-right: #ffffff;
+      --text-left: #ffffff;
+      --text-right: #1a1817;
+      --muted-left: rgba(255,255,255,0.4);
+      --muted-right: #74706c;
+      --border: #e8e6e3;
+      --accent: #86efac;
+      --green: #15803d;
+      --red: #dc2626;
+      --amber: #b45309;
+      --radius: 12px;
+      --panel-left-width: 35%;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-right);
+      color: var(--text-right);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* --- LAYOUT --- */
+    .dashboard {
+      display: flex;
+      width: 100%;
+    }
+
+    .left-panel {
+      width: var(--panel-left-width);
+      background: var(--bg-left);
+      color: var(--text-left);
+      padding: 48px 40px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .right-panel {
+      flex: 1;
+      padding: 64px 80px;
+      background: var(--bg-right);
+    }
+
+    /* --- LEFT PANEL CONTENT --- */
+    .trade-identity { margin-bottom: 48px; }
+    .label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted-left);
+      margin-bottom: 8px;
+    }
+    .trade-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .trade-sub { font-size: 14px; color: var(--muted-left); }
+
+    .key-numbers {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 48px;
+    }
+    .num-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .num-row:last-child { border-bottom: none; }
+    .num-label { font-size: 13px; color: var(--muted-left); }
+    .num-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; }
+    .num-val.accent { color: var(--accent); }
+
+    .scenario-selector { display: flex; flex-direction: column; gap: 12px; margin-bottom: 48px; }
+    .sc-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-left);
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sc-btn:hover { background: rgba(255,255,255,0.1); }
+    .sc-btn.active {
+      background: #ffffff;
+      color: #000000;
+      border-color: #ffffff;
+    }
+    .sc-btn .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-left); }
+    .sc-btn.active .status-dot { background: var(--green); }
+
+    .left-footer { margin-top: auto; }
+    .why-genlayer {
+      font-size: 14px;
+      color: var(--muted-left);
+      padding: 20px;
+      background: rgba(255,255,255,0.03);
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+    }
+    .why-genlayer strong { color: #fff; }
+    .contract-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted-left);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .contract-link:hover { color: #fff; }
+
+    /* --- RIGHT PANEL CONTENT --- */
+    .section-header { margin-bottom: 40px; }
+    .section-header h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+
+    /* Timeline */
+    .timeline { position: relative; padding-left: 40px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 10px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .step { position: relative; margin-bottom: 40px; }
+    .step-icon {
+      position: absolute;
+      left: -40px;
+      top: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--border);
+      z-index: 1;
+    }
+    .step.completed .step-icon { background: var(--green); border-color: var(--green); }
+    .step.active .step-icon { background: #000; border-color: #000; }
+
+    .step-content { max-width: 600px; }
+    .step-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .step-desc { font-size: 16px; color: var(--muted-right); }
+
+    /* Dynamic Step 4 & 5 */
+    .dynamic-content {
+      background: #f9f9f8;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-top: 24px;
+      transition: opacity 0.3s;
+    }
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .verdict-badge.green { background: #dcfce7; color: var(--green); }
+    .verdict-badge.red { background: #fee2e2; color: var(--red); }
+    .verdict-badge.amber { background: #fef3c7; color: var(--amber); }
+
+    .settlement-outcome { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .outcome-amount { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+
+    .docket-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: inherit;
+      margin-top: 20px;
+      transition: all 0.2s;
+    }
+    .docket-card:hover { border-color: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .docket-icon { width: 32px; height: 32px; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+
+    .proof-details {
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: var(--muted-right);
+    }
+    .proof-details a { color: var(--text-right); font-weight: 600; text-decoration: none; }
+
+    /* --- MOBILE RESPONSIVE --- */
+    @media (max-width: 860px) {
+      .dashboard { flex-direction: column; }
+      .left-panel {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 32px 24px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+      .right-panel { padding: 48px 24px; }
+      .scenario-selector { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+      .sc-btn { padding: 10px 16px; font-size: 13px; flex: 1; justify-content: center; }
+      .sc-btn .status-dot { display: none; }
+      .why-genlayer { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="dashboard">
+  <!-- LEFT PANEL -->
+  <aside class="left-panel">
+    <div class="top-group">
+      <div class="trade-identity">
+        <div class="label">The Trade</div>
+        <h1 class="trade-title">Quinoa Export</h1>
+        <p class="trade-sub">Bolivia 🇧🇴 → Peru 🇵🇪</p>
+      </div>
+
+      <div class="key-numbers">
+        <div class="num-row">
+          <span class="num-label">Invoice</span>
+          <span class="num-val">150,000 BOB</span>
+        </div>
+        <div class="num-row">
+          <span class="num-label">Locked Rate</span>
+          <span class="num-val accent">0.493 PEN/BOB</span>
+        </div>
+        <div class="num-row">
+          <span class="num-label">Target Settlement</span>
+          <span class="num-val">73,950 PEN</span>
+        </div>
+      </div>
+
+      <div class="label">Select Scenario</div>
+      <div class="scenario-selector">
+        <button class="sc-btn active" onclick="showScenario('ontime', this)">
+          On Time <span class="status-dot"></span>
+        </button>
+        <button class="sc-btn" onclick="showScenario('late', this)">
+          1–4 Days Late <span class="status-dot"></span>
+        </button>
+        <button class="sc-btn" onclick="showScenario('undetermined', this)">
+          Undetermined <span class="status-dot"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="left-footer">
+      <div class="why-genlayer">
+        <strong>Why GenLayer?</strong><br/>
+        A normal oracle can lock a benchmark. It cannot resolve conflicting evidence. GenLayer lets the contract continue when facts are disputed.
+      </div>
+      <a href="https://sepolia.basescan.org/address/0xD7929535b7Fe825cbb51B5CE70a3356aCc64E2Fa" target="_blank" class="contract-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        Contract: 0xD792...CE2Fa
+      </a>
+    </div>
+  </aside>
+
+  <!-- RIGHT PANEL -->
+  <main class="right-panel">
+    <div class="section-header">
+      <div class="label" style="color:var(--muted-right)">Lifecycle</div>
+      <h2>Invoice Progress</h2>
+    </div>
+
+    <div class="timeline">
+      <!-- Step 1-3 (Compact/Sticky) -->
+      <div class="step completed">
+        <div class="step-icon"></div>
+        <div class="step-content">
+          <div class="step-title">Invoice Created</div>
+          <div class="step-desc">150,000 BOB registered on Base Sepolia.</div>
+        </div>
+      </div>
+
+      <div class="step completed">
+        <div class="step-icon"></div>
+        <div class="step-content">
+          <div class="step-title">Benchmark Locked</div>
+          <div class="step-desc">GenLayer validators confirmed rate: 0.493 PEN/BOB.</div>
+        </div>
+      </div>
+
+      <div class="step completed">
+        <div class="step-icon"></div>
+        <div class="step-content">
+          <div class="step-title">Settlement Funded</div>
+          <div class="step-desc">73,950 PEN escrowed by importer.</div>
+        </div>
+      </div>
+
+      <!-- Step 4: Classification -->
+      <div class="step active">
+        <div class="step-icon"></div>
+        <div class="step-content">
+          <div class="step-title">Shipment Classification</div>
+          <div class="step-desc">GenLayer evaluates evidence to determine shipment status.</div>
+
+          <div id="classification-result" class="dynamic-content">
+            <div id="verdict-pill" class="verdict-badge green">ON_TIME</div>
+            <p id="verdict-text">Shipment arrived on schedule. No dispute raised.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Settlement -->
+      <div class="step active">
+        <div class="step-icon"></div>
+        <div class="step-content">
+          <div class="step-title" id="settlement-title">Settlement Released</div>
+          <div class="step-desc">The contract executes the pre-agreed remedy.</div>
+
+          <div class="settlement-outcome">
+            <div class="outcome-amount" id="outcome-amount">73,950 PEN</div>
+            <p id="outcome-desc">100% of escrowed funds transferred to exporter.</p>
+
+            <a href="#" id="docket-link" target="_blank" class="docket-card">
+              <div class="docket-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              </div>
+              <div>
+                <div style="font-weight:600;font-size:14px;">Internet Court Docket ↗</div>
+                <div id="docket-sub" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted-right);">Case: On-time shipment</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="proof-details">
+      <div>Data build: 2026-03-08 · v1.0</div>
+      <a href="proof.html">Inspect technical proof →</a>
+    </div>
+  </main>
+</div>
+
+<script>
+  const scenarios = {
+    ontime: {
+      verdict: 'ON_TIME',
+      verdictClass: 'green',
+      verdictText: 'Shipment arrived on schedule. No dispute raised.',
+      settlementTitle: 'Settlement Released',
+      amount: '73,950 PEN',
+      desc: '100% of escrowed funds transferred to exporter.',
+      docket: 'https://internetcourt.org/cases/0xb4700D67d6cBeF18011021A2A20389ea88753234',
+      docketSub: 'Case: On-time shipment'
+    },
+    late: {
+      verdict: 'LATE_1_4',
+      verdictClass: 'red',
+      verdictText: 'Shipment contested. GenLayer classified the shipment as 1–4 days late.',
+      settlementTitle: 'Settlement Adjusted',
+      amount: '73,580.25 PEN',
+      desc: '99.5% released. 369.75 PEN late-shipment penalty returned to importer.',
+      docket: 'https://internetcourt.org/cases/0xbd0dB046A913817522B595CFEb922D5E2aad4268',
+      docketSub: 'Case: Late shipment — remedy applied'
+    },
+    undetermined: {
+      verdict: 'UNDETERMINED',
+      verdictClass: 'amber',
+      verdictText: 'GenLayer could not determine crossing date from evidence provided.',
+      settlementTitle: 'Manual Review',
+      amount: '73,950 PEN (Held)',
+      desc: 'Escrow frozen. 14-day arbitrator window for manual intervention.',
+      docket: 'https://internetcourt.org/cases/0xe50A8F382B3B751dBd7053963EbaBB59916f3788',
+      docketSub: 'Case: Evidence insufficient'
+    }
+  };
+
+  function showScenario(key, btn) {
+    // UI - Buttons
+    document.querySelectorAll('.sc-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const s = scenarios[key];
+
+    // Transition effect
+    const panel = document.getElementById('classification-result');
+    panel.style.opacity = 0;
+
+    setTimeout(() => {
+      // Step 4 Update
+      const pill = document.getElementById('verdict-pill');
+      pill.textContent = s.verdict;
+      pill.className = 'verdict-badge ' + s.verdictClass;
+      document.getElementById('verdict-text').textContent = s.verdictText;
+
+      // Step 5 Update
+      document.getElementById('settlement-title').textContent = s.settlementTitle;
+      document.getElementById('outcome-amount').textContent = s.amount;
+      document.getElementById('outcome-amount').style.color = (key === 'late') ? 'var(--red)' : (key === 'undetermined' ? 'var(--amber)' : 'var(--green)');
+      document.getElementById('outcome-desc').textContent = s.desc;
+
+      // Docket Link
+      document.getElementById('docket-link').href = s.docket;
+      document.getElementById('docket-sub').textContent = s.docketSub;
+
+      panel.style.opacity = 1;
+    }, 150);
+  }
+
+  // Init
+  window.onload = () => {
+    // Select first scenario on load
+    const firstBtn = document.querySelector('.sc-btn');
+    showScenario('ontime', firstBtn);
+  };
+</script>
+
+</body>
+</html>
