@@ -83,6 +83,7 @@
     .flow-amount { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 700; color: #fff; margin-top: 4px; }
     .flow-amount.green { color: #86efac; }
     .flow-rate { display: inline-block; background: rgba(134,239,172,0.15); border: 1px solid rgba(134,239,172,0.3); border-radius: 6px; padding: 3px 10px; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600; color: #86efac; margin-top: 6px; }
+    .flow-sub { font-size: 11px; color: var(--muted); margin-top: 4px; font-style: italic; }
     .flow-conn { display: flex; flex-direction: column; align-items: center; padding: 2px 0; }
     .flow-line { width: 2px; height: 16px; background: rgba(255,255,255,0.1); }
     .flow-arrow { color: rgba(255,255,255,0.2); font-size: 12px; margin-top: -2px; }
@@ -139,9 +140,8 @@
     .sc-btn.manual.active    { background: var(--amber-light); border-color: rgba(180,83,9,0.3);   color: var(--amber); }
     .sc-panel { display: none; margin-top: 4px; }
     .sc-panel.show { display: block; }
-    .sc-accepted { padding: 14px 0; font-size: 16px; color: var(--green); font-weight: 500; }
-    .sc-contested { padding: 14px 0; }
-    .sc-contested .desc { font-size: 15px; color: var(--muted); margin-bottom: 14px; }
+    .sc-result { padding: 14px 0; }
+    .sc-what { font-size: 16px; color: var(--muted); margin-bottom: 10px; line-height: 1.55; }
     .verdict-pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 9999px; padding: 7px 16px; font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 700; }
     .verdict-pill.green  { background: var(--green-light); color: var(--green); }
     .verdict-pill.red    { background: var(--red-light);   color: var(--red); }
@@ -261,9 +261,10 @@
           </div>
           <div class="flow-conn"><div class="flow-line"></div><div class="flow-arrow">▼</div></div>
           <div class="flow-node mid">
-            <div class="flow-label">⚙️ Settlement Engine</div>
-            <div class="flow-name">GenLayer Contract</div>
+            <div class="flow-label">Settlement contract</div>
+            <div class="flow-name">Base Sepolia</div>
             <div class="flow-rate">0.493 PEN / BOB</div>
+            <div class="flow-sub">Benchmark + verdict via GenLayer</div>
           </div>
           <div class="flow-conn"><div class="flow-line"></div><div class="flow-arrow">▼</div></div>
           <div class="flow-node">
@@ -285,23 +286,23 @@
 
     <div class="boundary-cards">
       <div class="b-card can">
-        <div class="b-card-label">A normal oracle can</div>
-        <div class="b-card-text">Lock a benchmark rate and return a number.</div>
+        <div class="b-card-label">Deterministic</div>
+        <div class="b-card-text">Locking a benchmark rate. Any oracle can return a number.</div>
       </div>
       <div class="b-card cannot">
-        <div class="b-card-label">A normal oracle cannot</div>
-        <div class="b-card-text">Resolve which shipment record controls when evidence conflicts.</div>
+        <div class="b-card-label">Non-deterministic</div>
+        <div class="b-card-text">Classifying a disputed shipment when both parties submit conflicting evidence.</div>
       </div>
       <div class="b-card does">
-        <div class="b-card-label">GenLayer</div>
-        <div class="b-card-text">Evaluates the evidence, returns a machine-usable verdict, and lets the same contract continue.</div>
+        <div class="b-card-label">GenLayer handles both</div>
+        <div class="b-card-text">Same contract, same settlement engine. GenLayer decides the disputed fact; the contract applies the consequence.</div>
       </div>
     </div>
 
     <div class="boundary-note">
       Late payment changes settlement timing — roll cost, FX exposure, interest.<br/>
       Late shipment changes whether and how much of the escrowed funds should be released.<br/>
-      <strong>This demo covers the shipment condition. The contract pre-defines the remedy; GenLayer decides the disputed fact.</strong>
+      <strong>This demo covers the shipment condition.</strong>
     </div>
   </div>
 </section>
@@ -312,7 +313,7 @@
   <div class="container">
     <div class="section-label">Trade Lifecycle</div>
     <h2>From invoice to settlement</h2>
-    <p class="lifecycle-sub">Five steps. One contract. If shipment timing is contested, GenLayer classifies the shipment outcome. The contract applies the pre-agreed remedy — from full release to proportional adjustment to cancellation.</p>
+    <p class="lifecycle-sub">Five steps. One contract. If the shipment is contested, GenLayer evaluates the evidence and classifies the outcome. The contract applies the pre-agreed remedy.</p>
 
     <div class="tl-steps">
 
@@ -345,7 +346,7 @@
         <div class="tl-left"><div class="tl-dot s4">4</div><div class="tl-spine"></div></div>
         <div class="tl-body">
           <div class="tl-title">Shipment Checked</div>
-          <div class="tl-desc">If uncontested, full settlement is released. If contested, GenLayer classifies the shipment outcome. The contract applies the pre-agreed remedy.</div>
+          <div class="tl-desc">If contested, GenLayer evaluates the evidence and classifies the shipment outcome.</div>
 
           <div class="sc-selector">
             <button class="sc-btn accepted active" onclick="pick('ontime',this)">ON_TIME</button>
@@ -354,19 +355,21 @@
           </div>
 
           <div id="sc-ontime" class="sc-panel show">
-            <div class="sc-accepted">Shipment classified on time.</div>
+            <div class="sc-result">
+              <div class="sc-what">Shipment classified on time. No dispute.</div>
+            </div>
           </div>
 
           <div id="sc-late14" class="sc-panel">
-            <div class="sc-contested">
-              <div class="desc">Shipment contested. GenLayer classified the shipment as 1–4 days late.</div>
+            <div class="sc-result">
+              <div class="sc-what">Shipment contested. GenLayer classified the shipment as 1–4 days late.</div>
               <div class="verdict-pill" style="background:var(--amber-light);color:var(--amber);"><span class="vd" style="background:var(--amber);"></span> LATE_1_4</div>
             </div>
           </div>
 
           <div id="sc-undetermined" class="sc-panel">
-            <div class="sc-contested">
-              <div class="desc">Shipment contested. GenLayer could not determine the crossing date from the evidence.</div>
+            <div class="sc-result">
+              <div class="sc-what">Shipment contested. GenLayer could not determine the crossing date from the evidence.</div>
               <div class="verdict-pill amber"><span class="vd"></span> UNDETERMINED</div>
             </div>
           </div>
@@ -419,7 +422,7 @@
         </div>
         <div class="proof-item">
           <div class="proof-dot" style="background:var(--purple);"></div>
-          Verdict on GenLayer
+          Internet Court verdict on GenLayer
         </div>
       </div>
       <a href="proof.html" class="proof-link">Inspect everything under the hood →</a>
