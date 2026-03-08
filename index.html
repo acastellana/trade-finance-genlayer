@@ -1124,22 +1124,12 @@
     </div>
     <div class="footer-bottom">
       TradeFxSettlement: 0xD7929535b7Fe825cbb51B5CE70a3356aCc64E2Fa · FxBenchmarkOracle: 0x3B8501bAcaB70dedbC6f8B8EFCB888ba66cbc73e · Chain: Base Sepolia 84532
-      <br/>Build: <span id="build-stamp"></span>
+      <br/>Build: 15759269 · 2026-03-08T14:08:42Z
     </div>
   </div>
 </footer>
 
 <script>
-  // Build stamp — fetch latest commit from GitHub API
-  fetch('https://api.github.com/repos/acastellana/trade-finance-genlayer/commits/master', {headers:{Accept:'application/vnd.github.v3+json'}})
-    .then(r => r.json())
-    .then(d => {
-      const hash = d.sha ? d.sha.slice(0, 8) : '?';
-      const time = d.commit ? d.commit.committer.date : '?';
-      document.getElementById('build-stamp').textContent = hash + ' · ' + time;
-    })
-    .catch(() => { document.getElementById('build-stamp').textContent = 'offline'; });
-
   const STATES = ['accepted', 'timely', 'late', 'undetermined'];
 
   function selectState(state, btn) {
