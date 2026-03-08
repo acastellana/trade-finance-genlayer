@@ -102,8 +102,8 @@
     .b-card.can .b-card-text { color: var(--green); }
     .b-card.cannot .b-card-text { color: var(--red); }
     .b-card.does .b-card-text { color: var(--dark); font-weight: 600; }
-    .boundary-coda { font-size: 17px; color: var(--muted); line-height: 1.75; max-width: 520px; }
-    .boundary-coda strong { color: var(--dark); }
+    .boundary-note { font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 560px; }
+    .boundary-note strong { color: var(--dark); }
 
     /* ── LIFECYCLE ── */
     .lifecycle-section { padding: 96px 0; border-top: 1px solid var(--border); }
@@ -150,6 +150,10 @@
     .verdict-pill.green .vd  { background: var(--green); }
     .verdict-pill.red .vd    { background: var(--red); }
     .verdict-pill.amber .vd  { background: var(--amber); }
+
+    .sc-schedule-note { font-size: 13px; color: var(--muted); margin-top: 16px; line-height: 1.55; }
+    .sc-schedule-note a { color: var(--blue); text-decoration: none; }
+    .sc-schedule-note a:hover { text-decoration: underline; }
 
     /* Step 5 */
     .outcome { display: none; }
@@ -281,10 +285,10 @@
       </div>
     </div>
 
-    <div class="boundary-coda">
-      GenLayer does not decide the price.<br/>
-      The contract pre-defines the remedy for late shipment.<br/>
-      <strong>GenLayer decides the disputed fact. The contract applies the agreed consequence.</strong>
+    <div class="boundary-note">
+      Late payment changes settlement timing — roll cost, FX exposure, interest.<br/>
+      Late shipment changes whether and how much of the escrowed funds should be released.<br/>
+      <strong>This demo covers the shipment condition. The contract pre-defines the remedy; GenLayer decides the disputed fact.</strong>
     </div>
   </div>
 </section>
@@ -331,14 +335,13 @@
           <div class="tl-desc">If uncontested, full settlement is released. If contested, GenLayer classifies the delay. The contract applies the pre-agreed remedy.</div>
 
           <div class="sc-selector">
-            <button class="sc-btn accepted active" onclick="pick('ontime',this)">✓ On Time</button>
-            <button class="sc-btn contested" onclick="pick('late14',this)">1–4 Days Late</button>
-            <button class="sc-btn late" onclick="pick('verylate',this)">Very Late</button>
-            <button class="sc-btn manual" onclick="pick('undetermined',this)">Undetermined</button>
+            <button class="sc-btn accepted active" onclick="pick('ontime',this)">ON_TIME</button>
+            <button class="sc-btn contested" onclick="pick('late14',this)">LATE_1_4</button>
+            <button class="sc-btn manual" onclick="pick('undetermined',this)">UNDETERMINED</button>
           </div>
 
           <div id="sc-ontime" class="sc-panel show">
-            <div class="sc-accepted">Shipment on time. 100% of escrow released to exporter. <a href="https://internetcourt.org/cases/0xb4700D67d6cBeF18011021A2A20389ea88753234" target="_blank" style="font-size:13px;">IC Docket ↗</a></div>
+            <div class="sc-accepted">Shipment classified on time. 100% of escrow released to exporter. <a href="https://internetcourt.org/cases/0xb4700D67d6cBeF18011021A2A20389ea88753234" target="_blank" style="font-size:13px;">IC Docket ↗</a></div>
           </div>
 
           <div id="sc-late14" class="sc-panel">
@@ -348,19 +351,14 @@
             </div>
           </div>
 
-          <div id="sc-verylate" class="sc-panel">
-            <div class="sc-contested">
-              <div class="desc">Shipment contested. GenLayer classified the delay as more than 8 days late. <a href="https://internetcourt.org/cases/0xbd0dB046A913817522B595CFEb922D5E2aad4268" target="_blank" style="font-size:13px;">IC Docket ↗</a></div>
-              <div class="verdict-pill red"><span class="vd"></span> VERY_LATE</div>
-            </div>
-          </div>
-
           <div id="sc-undetermined" class="sc-panel">
             <div class="sc-contested">
               <div class="desc">Shipment contested. GenLayer could not determine crossing date from the evidence. <a href="https://internetcourt.org/cases/0xe50A8F382B3B751dBd7053963EbaBB59916f3788" target="_blank" style="font-size:13px;">IC Docket ↗</a></div>
               <div class="verdict-pill amber"><span class="vd"></span> UNDETERMINED</div>
             </div>
           </div>
+
+          <div class="sc-schedule-note">These three outcomes are deployed and proven on-chain. The full remedy schedule (including LATE_5_6, LATE_7_8, and VERY_LATE cancellation) is defined in the contract and shown <a href="proof.html#economics">under the hood</a>.</div>
         </div>
       </div>
 
@@ -374,9 +372,6 @@
           </div>
           <div id="out-late14" class="outcome">
             <div class="tl-desc"><strong style="color:var(--amber);">99.5% released.</strong> 73,580.25 PEN to exporter. 369.75 PEN late-shipment adjustment returned to importer.</div>
-          </div>
-          <div id="out-verylate" class="outcome">
-            <div class="tl-desc"><strong style="color:var(--red);">Cancelled.</strong> Shipment more than 8 days late. Full 73,950 PEN returned to importer.</div>
           </div>
           <div id="out-undetermined" class="outcome">
             <div class="tl-desc"><strong style="color:var(--amber);">Manual review.</strong> Evidence insufficient. 73,950 PEN held. 14-day arbitrator window; if no ruling, defaults to refund.</div>
@@ -435,13 +430,12 @@ function pick(state, btn) {
   btn.classList.add('active');
   document.querySelectorAll('.sc-panel').forEach(p => p.classList.remove('show'));
   document.getElementById('sc-' + state).classList.add('show');
-  ['ontime','late14','verylate','undetermined'].forEach(s => document.getElementById('out-' + s).classList.remove('show'));
+  ['ontime','late14','undetermined'].forEach(s => document.getElementById('out-' + s).classList.remove('show'));
   document.getElementById('out-' + state).classList.add('show');
   const d = document.getElementById('dot5');
   d.className = 'tl-dot s5';
   if (state === 'ontime') d.classList.add('timely');
   else if (state === 'late14') d.classList.add('manual');
-  else if (state === 'verylate') d.classList.add('late');
   else d.classList.add('manual');
 }
 </script>
