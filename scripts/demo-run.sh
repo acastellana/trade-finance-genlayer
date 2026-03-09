@@ -7,12 +7,12 @@ CAST=~/.foundry/bin/cast
 DEPLOYER_KEY=$(cat ~/.internetcourt/.exporter_key)
 
 export GL_PRIVATE_KEY=$DEPLOYER_KEY
-export RELAYER_KEY=$(cat ~/clawd/projects/trade-finance-genlayer/base-sepolia/.wallets/relayer.key)
+export RELAYER_KEY=$(cat ~/clawd/projects/conditional-payment-cross-border-trade/base-sepolia/.wallets/relayer.key)
 export GL_ORACLE_ADDRESS=$ORACLE
 export BASE_SEPOLIA_RPC=$RPC
 export SKIP_PRIMARY_BENCHMARK=1
 
-cd ~/clawd/projects/trade-finance-genlayer
+cd ~/clawd/projects/conditional-payment-cross-border-trade
 
 # ─── SCENE 1 ───────────────────────────────────────────────────────────────
 clear

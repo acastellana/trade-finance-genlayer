@@ -211,13 +211,13 @@ Adding a new case type requires only:
 ### Prerequisites
 ```bash
 # Install deps
-cd projects/trade-finance-genlayer && npm install
+cd projects/conditional-payment-cross-border-trade && npm install
 cd projects/internetcourt/bridge/service && npm install
 ```
 
 ### Deploy fresh scenario contracts
 ```bash
-cd projects/trade-finance-genlayer
+cd projects/conditional-payment-cross-border-trade
 
 # Regenerate court sheet images (if needed)
 python3 scripts/generate_court_sheets.py

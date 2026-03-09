@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * trade-finance-relay.mjs
+ * conditional-payment-relay.mjs
  *
  * Bridge relay for TradeFxSettlement <-> GenLayer.
  *
@@ -20,8 +20,8 @@
  *     3. BridgeReceiver calls processBridgeMessage() on TradeFxSettlement
  *
  * Usage:
- *   node scripts/trade-finance-relay.mjs
- *   node scripts/trade-finance-relay.mjs --once   (one-shot, no loop)
+ *   node scripts/conditional-payment-relay.mjs
+ *   node scripts/conditional-payment-relay.mjs --once   (one-shot, no loop)
  *
  * Env vars (from .relay.env or environment):
  *   RELAY_PRIVATE_KEY       Relayer wallet key (hex, 0x-prefixed)

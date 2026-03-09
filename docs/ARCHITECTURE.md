@@ -144,7 +144,7 @@ The relay reads `getOracleType()` to look up the oracle Python source in `ORACLE
 
 ### Deploy fresh scenario contracts
 ```bash
-cd projects/trade-finance-genlayer
+cd projects/conditional-payment-cross-border-trade
 node scripts/deploy-v5-scenarios.mjs
 ```
 
@@ -159,7 +159,7 @@ The relay polls Base Sepolia every 5s for `DisputeRequested` events, deploys ora
 
 ### Generate court sheet evidence images
 ```bash
-cd projects/trade-finance-genlayer
+cd projects/conditional-payment-cross-border-trade
 python3 scripts/generate_court_sheets.py
 # Upload to IPFS:
 node -e "..." # see scripts/deploy-v5-scenarios.mjs upload section

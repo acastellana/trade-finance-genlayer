@@ -25,7 +25,7 @@ const GUIDELINE = "shipment-deadline-v1";
 function loadKey(p) { const k = readFileSync(p, "utf8").trim(); return k.startsWith("0x") ? k : "0x" + k; }
 const EXPORTER_KEY = loadKey(`${process.env.HOME}/.internetcourt/.exporter_key`);
 const IMPORTER_KEY = loadKey(`${process.env.HOME}/.internetcourt/.importer_key`);
-const RELAYER_KEY = loadKey("/home/albert/clawd/projects/trade-finance-genlayer/base-sepolia/.wallets/relayer.key");
+const RELAYER_KEY = loadKey("/home/albert/clawd/projects/conditional-payment-cross-border-trade/base-sepolia/.wallets/relayer.key");
 
 const transport = http(RPC);
 const pub = createPublicClient({ chain: baseSepolia, transport });
