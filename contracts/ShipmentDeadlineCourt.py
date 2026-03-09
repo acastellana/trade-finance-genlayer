@@ -1,15 +1,17 @@
-# v0.1.0
+# v0.1.1
 # { "Depends": "py-genlayer:latest" }
-"""ShipmentDeadlineCourt — Single-question shipment deadline court for GenLayer.
+"""ShipmentDeadlineCourt — Granular shipment delay court for GenLayer.
 
-Evaluates ONE factual statement:
-    "Shipment under Contract [REF] crossed Bolivian export customs at
-     Desaguadero on or before [DEADLINE]."
+Evaluates shipment delay against a deadline using court sheet images.
+Categorizes the delay into 6 possible buckets for varying settlement outcomes.
 
 Returns verdict to Base Sepolia via the InternetCourt bridge:
-    TIMELY      (uint8=1) → shipmentStatus = TIMELY   → settlement proceeds
-    LATE        (uint8=2) → shipmentStatus = LATE     → settlement cancelled, importer refunded
-    UNDETERMINED (uint8=0) → shipmentStatus = UNDETERMINED → MANUAL_REVIEW
+    ON_TIME      (1) — crossed on or before deadline
+    LATE_1_4     (2) — crossed 1-4 days after deadline
+    LATE_5_6     (3) — crossed 5-6 days after deadline
+    LATE_7_8     (4) — crossed 7-8 days after deadline
+    VERY_LATE    (5) — crossed more than 8 days after deadline
+    UNDETERMINED (6) — evidence insufficient or contradictory
 
 Evidence: exactly two composite court sheet images (IPFS CIDs).
     court_sheet_a: contract summary snippet + exporter evidence (ANB customs exit)
@@ -37,38 +39,39 @@ GUIDELINES = {
         "Confirm that the shipment reference and truck plate match across both documents. "
         "Determine whether the evidence shows that the shipment crossed Bolivian export "
         "customs at Desaguadero on or before the stated deadline. "
+        "Calculate the number of days between the crossing date and the deadline. "
+        "Classify the delay into one of the following buckets: "
+        "- ON_TIME: Crossed on or before deadline (0 or negative days late). "
+        "- LATE_1_4: Crossed 1 to 4 days after deadline. "
+        "- LATE_5_6: Crossed 5 to 6 days after deadline. "
+        "- LATE_7_8: Crossed 7 to 8 days after deadline. "
+        "- VERY_LATE: Crossed more than 8 days after deadline. "
+        "- UNDETERMINED: Evidence is insufficient, unreadable, or contradictory. "
         "Evidence hierarchy: official customs exit records showing the vehicle physically "
         "crossing the border are the most authoritative evidence of crossing time. "
         "Secondary gate or administrative records (e.g. arrival scans, issue dates, "
         "pre-clearance stamps) are weaker and should only be preferred if the primary "
         "customs exit record is missing, unreadable, or clearly inapplicable. "
         "Apply this hierarchy when evaluating conflicting timestamps. "
-        "Return TIMELY if the most authoritative customs-crossing record shows the shipment "
-        "crossed on or before the deadline. A weaker secondary record showing a later time "
-        "does not override a clear primary customs exit record. "
-        "Return LATE if the most authoritative customs-crossing record shows the shipment "
-        "crossed after the deadline, or if the exporter has no primary customs exit record "
-        "and the available evidence unambiguously shows a late crossing. "
-        "Return UNDETERMINED if: the images are unreadable; shipment references or truck "
-        "plates do not match between documents; both primary records conflict and neither "
-        "is clearly more authoritative; or evidence is insufficient to determine the crossing time. "
         "The importer bears the burden of proof: if the importer's evidence is missing or "
         "cannot be verified, and the exporter's customs exit record is clear and timely, "
-        "return TIMELY."
+        "return ON_TIME."
     )
 }
 
 IPFS_GATEWAY = "https://ipfs.io/ipfs/"
 
 # Verdict uint8 codes — must match TradeFxSettlement.sol resolveShipmentVerdict()
-# 1=TIMELY, 2=LATE, 3=UNDETERMINED
-VERDICT_TIMELY       = 1
-VERDICT_LATE         = 2
-VERDICT_UNDETERMINED = 3
+VERDICT_ON_TIME      = 1
+VERDICT_LATE_1_4     = 2
+VERDICT_LATE_5_6     = 3
+VERDICT_LATE_7_8     = 4
+VERDICT_VERY_LATE    = 5
+VERDICT_UNDETERMINED = 6
 
 
 class ShipmentDeadlineCourt(gl.Contract):
-    """Single-question shipment deadline court.
+    """Granular shipment deadline court.
     Evaluates on construction; sends result via bridge to Base Sepolia."""
 
     case_id:               str
@@ -80,6 +83,7 @@ class ShipmentDeadlineCourt(gl.Contract):
     target_chain_eid:      u256  # LayerZero EID for Base Sepolia (40245)
     verdict:               str
     verdict_reason:        str
+    days_late:             int   # Number of days late (-1 if undetermined)
 
     def __init__(
         self,
@@ -155,15 +159,23 @@ Examine the images carefully. Look for:
 3. The timestamp on the SUNAT border gate record (importer document)
 4. Whether the truck plate and container references match between documents
 
-Based ONLY on the evidence in the images, return exactly one of:
-- TIMELY: both documents show the crossing occurred before the deadline
-- LATE: both documents show the crossing occurred after the deadline
-- UNDETERMINED: timestamps conflict, are unreadable, references don't match, or evidence is insufficient
+Your task is to:
+1. Determine the crossing date from the evidence.
+2. Determine the deadline from the contract summary.
+3. Calculate the number of days late (crossing date minus deadline).
+4. Map to the correct bucket based on days late:
+   - 0 or fewer days late → ON_TIME
+   - 1-4 days late → LATE_1_4
+   - 5-6 days late → LATE_5_6
+   - 7-8 days late → LATE_7_8
+   - More than 8 days late → VERY_LATE
+   - Cannot determine → UNDETERMINED
 
 Output ONLY valid JSON, no other text:
 {{
-  "verdict": "TIMELY" | "LATE" | "UNDETERMINED",
-  "reason": "One concise sentence explaining the verdict referencing the specific timestamps or issues found."
+  "verdict": "ON_TIME" | "LATE_1_4" | "LATE_5_6" | "LATE_7_8" | "VERY_LATE" | "UNDETERMINED",
+  "days_late": <number or null>,
+  "reason": "One concise sentence explaining the verdict referencing the specific dates and day count."
 }}"""
 
             if images:
@@ -179,11 +191,12 @@ Output ONLY valid JSON, no other text:
             nondet,
             task="Evaluate a shipment customs crossing dispute using court sheet document images",
             criteria=(
-                "The verdict must be exactly one of TIMELY, LATE, or UNDETERMINED. "
-                "The reason must reference specific timestamps or document issues found in the images. "
-                "TIMELY requires both documents to show crossing before the deadline. "
-                "LATE requires both documents to show crossing after the deadline. "
-                "UNDETERMINED covers all ambiguous cases."
+                "The verdict must be exactly one of: ON_TIME, LATE_1_4, LATE_5_6, LATE_7_8, VERY_LATE, UNDETERMINED. "
+                "The days_late must be an integer representing the count of days after the deadline, or null if undetermined. "
+                "The reason must reference specific dates and the calculated delay. "
+                "ON_TIME is for 0 or negative days late. "
+                "LATE_1_4 is for 1-4 days. LATE_5_6 is for 5-6 days. LATE_7_8 is for 7-8 days. VERY_LATE is for >8 days. "
+                "UNDETERMINED covers missing or conflicting evidence."
             ),
         )
 
@@ -199,19 +212,36 @@ Output ONLY valid JSON, no other text:
 
             v = parsed.get("verdict", "UNDETERMINED").strip().upper()
             r = parsed.get("reason", "").strip()
+            dl = parsed.get("days_late")
+            if dl is None:
+                dl = -1
+            else:
+                dl = int(dl)
         except Exception as e:
             v = "UNDETERMINED"
             r = f"Failed to parse evaluation response: {str(e)}"
+            dl = -1
 
-        if v not in ("TIMELY", "LATE", "UNDETERMINED"):
+        valid_verdicts = ("ON_TIME", "LATE_1_4", "LATE_5_6", "LATE_7_8", "VERY_LATE", "UNDETERMINED")
+        if v not in valid_verdicts:
             v = "UNDETERMINED"
-            r = f"Unexpected verdict value, defaulting to UNDETERMINED. Original: {r}"
+            r = f"Unexpected verdict value, defaulting to UNDETERMINED. Original reason: {r}"
+            dl = -1
 
         self.verdict       = v
         self.verdict_reason = r
+        self.days_late      = dl
 
-        # Map verdict to uint8 — matches TradeFxSettlement.sol: 1=TIMELY, 2=LATE, 3=UNDETERMINED
-        verdict_uint8 = {"TIMELY": 1, "LATE": 2, "UNDETERMINED": 3}.get(v, 3)
+        # Map verdict to uint8
+        verdict_map = {
+            "ON_TIME":      VERDICT_ON_TIME,
+            "LATE_1_4":     VERDICT_LATE_1_4,
+            "LATE_5_6":     VERDICT_LATE_5_6,
+            "LATE_7_8":     VERDICT_LATE_7_8,
+            "VERY_LATE":    VERDICT_VERY_LATE,
+            "UNDETERMINED": VERDICT_UNDETERMINED
+        }
+        verdict_uint8 = verdict_map.get(v, VERDICT_UNDETERMINED)
 
         # ABI-encode the resolution payload:
         # Inner: (address settlementContract, uint8 verdict, string reason)
@@ -226,7 +256,7 @@ Output ONLY valid JSON, no other text:
             [Address(settlement_contract), resolution_data]
         )[4:]  # strip selector
 
-        # Send via bridge → zkSync Sepolia → LayerZero → Base Sepolia
+        # Send via bridge → LayerZero → Base Sepolia
         bridge = gl.get_contract_at(Address(bridge_sender))
         bridge.emit().send_message(
             int(self.target_chain_eid),
@@ -239,10 +269,11 @@ Output ONLY valid JSON, no other text:
     @gl.public.view
     def get_verdict(self) -> dict:
         return {
-            "case_id":       self.case_id,
-            "verdict":       self.verdict,
+            "case_id":        self.case_id,
+            "verdict":        self.verdict,
+            "days_late":      self.days_late,
             "verdict_reason": self.verdict_reason,
-            "guideline":     self.guideline_version,
+            "guideline":      self.guideline_version,
         }
 
     @gl.public.view

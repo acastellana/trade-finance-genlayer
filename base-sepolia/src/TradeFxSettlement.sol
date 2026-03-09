@@ -29,9 +29,10 @@ interface IResolutionTarget {
  * Shipment check (inline exception branch):
  *   FUNDED → acceptShipment() → settle()
  *   FUNDED → contestShipment() → [InternetCourt evaluates] →
- *     resolveShipmentVerdict(TIMELY)      → finalizeAfterShipment()
- *     resolveShipmentVerdict(LATE)        → auto cancelAndRefund
- *     resolveShipmentVerdict(UNDETERMINED) → resolveManualReview(arbitrator)
+ *     resolveShipmentVerdict(1: ON_TIME)    → finalizeAfterShipment() (100% to exporter)
+ *     resolveShipmentVerdict(2-4: LATE_X)   → auto-settle with penalty
+ *     resolveShipmentVerdict(5: VERY_LATE) → enter RETURN_REQUIRED state
+ *     resolveShipmentVerdict(6: UNDET)      → resolveManualReview(arbitrator)
  *
  * Contest deadline:
  *   contestShipment() reverts after contestDeadline (fundSettlement time + 7 days).
@@ -166,7 +167,8 @@ contract TradeFxSettlement {
         CONTESTED,      // 2 — court case in progress
         TIMELY,         // 3 — verdict TRUE
         LATE,           // 4 — verdict FALSE
-        UNDETERMINED    // 5 — insufficient evidence; escalated to arbitrator
+        UNDETERMINED,   // 5 — insufficient evidence; escalated to arbitrator
+        RETURN_REQUIRED // 6 — VERY_LATE; buyer must submit return proof
     }
 
     ShipmentStatus public shipmentStatus;
@@ -179,6 +181,11 @@ contract TradeFxSettlement {
     uint256 public shipmentVerdictAt;
     string  public shipmentVerdictReason;
     bool    public shipmentReviewRequired;
+
+    uint256 public constant RETURN_PROOF_WINDOW = 14 days;
+    uint256 public returnProofDeadline;
+    string  public returnProofSheetACid;
+    string  public returnProofSheetBCid;
 
     // ─── InternetCourt integration ────────────────────────────────────────────
 
@@ -224,6 +231,12 @@ contract TradeFxSettlement {
     event ManualReviewTimedOut(address indexed caller, uint256 timestamp);
     event CourtContractSet(address indexed courtContract, address indexed by);
     event ArbitratorSet(address indexed arbitrator, address indexed by);
+
+    event ShipmentSettledWithPenalty(address indexed exporter, address indexed importer,
+        uint256 exporterAmount, uint256 importerAmount, uint256 penaltyBps);
+    event ReturnRequired(uint256 deadline, uint256 timestamp);
+    event ReturnProofSubmitted(address indexed importer, string sheetACid, string sheetBCid, uint256 timestamp);
+    event ReturnProofTimeout(address indexed caller, uint256 timestamp);
 
     // ─── Modifiers ───────────────────────────────────────────────────────────
 
@@ -595,7 +608,7 @@ contract TradeFxSettlement {
     /**
      * @notice Verdict delivery from InternetCourtFactory after GenLayer oracle finalizes.
      *         Only the registered courtFactory may call this.
-     *         Verdict codes (set by ShipmentDeadlineCourt.py): 1=TIMELY, 2=LATE, 3=UNDETERMINED.
+     *         Verdict codes (set by ShipmentDeadlineCourt.py): 1=ON_TIME, 2=LATE_1_4, 3=LATE_5_6, 4=LATE_7_8, 5=VERY_LATE, 6=UNDETERMINED.
      */
     function setResolution(uint8 verdict, string calldata reasoning) external {
         require(msg.sender == courtFactory, "TFX: only court factory");
@@ -662,24 +675,32 @@ contract TradeFxSettlement {
             msg.sender, fromCourt, block.timestamp);
 
         if (verdict == 1) {
-            // TRUE — TIMELY
+            // ON_TIME
             shipmentStatus  = ShipmentStatus.TIMELY;
             exceptionPaused = false;
-
         } else if (verdict == 2) {
-            // FALSE — LATE — cancel and refund immediately
-            shipmentStatus  = ShipmentStatus.LATE;
+            // LATE_1_4: 99.5% exporter, 0.5% importer
             exceptionPaused = false;
-            _cancelAndRefundImporter();
-
+            _settleWithPenalty(50);
         } else if (verdict == 3) {
-            // UNDETERMINED — escalate to arbitrator
+            // LATE_5_6: 99.0% exporter, 1.0% importer
+            exceptionPaused = false;
+            _settleWithPenalty(100);
+        } else if (verdict == 4) {
+            // LATE_7_8: 98.5% exporter, 1.5% importer
+            exceptionPaused = false;
+            _settleWithPenalty(150);
+        } else if (verdict == 5) {
+            // VERY_LATE
+            shipmentStatus      = ShipmentStatus.RETURN_REQUIRED;
+            returnProofDeadline = block.timestamp + RETURN_PROOF_WINDOW;
+            emit ReturnRequired(returnProofDeadline, block.timestamp);
+        } else if (verdict == 6) {
+            // UNDETERMINED — keep existing manual review logic
             shipmentStatus         = ShipmentStatus.UNDETERMINED;
             shipmentReviewRequired = true;
-            // exceptionPaused remains true
             uint256 reviewDeadline = block.timestamp + MANUAL_REVIEW_WINDOW;
             emit SettlementManualReview(caseId, reviewDeadline, block.timestamp);
-
         } else {
             revert("TFX: invalid verdict code");
         }
@@ -737,6 +758,31 @@ contract TradeFxSettlement {
     }
 
     /**
+     * @notice Anyone can call this to settle with a penalty if the return proof window expires.
+     */
+    function timeoutReturnProof() external {
+        require(shipmentStatus == ShipmentStatus.RETURN_REQUIRED, "TFX: not return required");
+        require(block.timestamp >= returnProofDeadline, "TFX: window not elapsed");
+
+        emit ReturnProofTimeout(msg.sender, block.timestamp);
+        _settleWithPenalty(150); // highest penalty tier
+    }
+
+    /**
+     * @notice Importer submits proof of return/rejection.
+     *         Placeholder for Phase 2 evaluation.
+     */
+    function submitReturnProof(string calldata returnSheetACid, string calldata returnSheetBCid) external {
+        require(shipmentStatus == ShipmentStatus.RETURN_REQUIRED, "TFX: not return required");
+        require(block.timestamp < returnProofDeadline, "TFX: window elapsed");
+
+        returnProofSheetACid = returnSheetACid;
+        returnProofSheetBCid = returnSheetBCid;
+
+        emit ReturnProofSubmitted(msg.sender, returnSheetACid, returnSheetBCid, block.timestamp);
+    }
+
+    /**
      * @notice Finalize settlement after shipment is confirmed TIMELY or ACCEPTED.
      *         Cannot proceed if LATE (funds were refunded inline) or UNDETERMINED (frozen).
      */
@@ -756,6 +802,27 @@ contract TradeFxSettlement {
     }
 
     // ─── Internal ─────────────────────────────────────────────────────────────
+
+    function _settleWithPenalty(uint256 penaltyBps) internal {
+        uint256 totalAmount = fundedAmount;
+        require(totalAmount > 0, "TFX: nothing to settle");
+
+        uint256 penalty = (totalAmount * penaltyBps) / 10000;
+        uint256 exporterAmount = totalAmount - penalty;
+
+        fundedAmount = 0;
+        status = Status.SETTLED;
+
+        if (exporterAmount > 0) {
+            settlementToken.safeTransfer(exporter, exporterAmount);
+        }
+        if (penalty > 0) {
+            settlementToken.safeTransfer(importer, penalty);
+        }
+
+        emit ShipmentSettledWithPenalty(exporter, importer, exporterAmount, penalty, penaltyBps);
+        emit Settled(exporter, exporterAmount, block.timestamp);
+    }
 
     function _cancelAndRefundImporter() internal {
         uint256 refund = fundedAmount;
