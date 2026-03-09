@@ -152,7 +152,7 @@
   <div class="container">
     <h1>Under the Hood</h1>
     <p class="top-sub">Full technical verification for the cross-border settlement prototype. This page shows the contracts, transactions, evidence, verdicts, and trust model behind the <a href="index.html">overview page</a>.</p>
-    <div class="build-stamp">Trade Finance × GenLayer · 2026</div>
+    <div class="build-stamp">Trade Finance × GenLayer · 2026-03-09</div>
 
     <div class="proven-block">
       <h3>What is proven here</h3>
@@ -242,17 +242,12 @@
       </thead>
       <tbody>
         <tr>
-          <td>TradeFxSettlement (main)</td>
-          <td>Base Sepolia</td>
-          <td class="addr"><a href="https://sepolia.basescan.org/address/0xD7929535b7Fe825cbb51B5CE70a3356aCc64E2Fa" target="_blank">0xD7929535b7Fe825cbb51B5CE70a3356aCc64E2Fa ↗</a></td>
-        </tr>
-        <tr>
           <td>Scenario A — On time</td>
           <td>Base Sepolia</td>
           <td class="addr"><a href="https://sepolia.basescan.org/address/0xb4700D67d6cBeF18011021A2A20389ea88753234" target="_blank">0xb4700D67d6cBeF18011021A2A20389ea88753234 ↗</a></td>
         </tr>
         <tr>
-          <td>Scenario B — Minor delay</td>
+          <td>Scenario B — Minor delay (v0.1)</td>
           <td>Base Sepolia</td>
           <td class="addr"><a href="https://sepolia.basescan.org/address/0xbd0dB046A913817522B595CFEb922D5E2aad4268" target="_blank">0xbd0dB046A913817522B595CFEb922D5E2aad4268 ↗</a></td>
         </tr>
@@ -260,6 +255,22 @@
           <td>Scenario C — Evidence unclear</td>
           <td>Base Sepolia</td>
           <td class="addr"><a href="https://sepolia.basescan.org/address/0xe50A8F382B3B751dBd7053963EbaBB59916f3788" target="_blank">0xe50A8F382B3B751dBd7053963EbaBB59916f3788 ↗</a></td>
+        </tr>
+        <tr>
+          <td>Scenario D — Minor delay</td>
+          <td>Base Sepolia</td>
+          <td class="addr"><a href="https://sepolia.basescan.org/address/0x08FB300E1290Fa3e12cdeD8B2Bf050Edd46fFf73" target="_blank">0x08FB300E1290Fa3e12cdeD8B2Bf050Edd46fFf73 ↗</a></td>
+        </tr>
+
+        <tr>
+          <td>Scenario F — Significant delay</td>
+          <td>Base Sepolia</td>
+          <td class="addr"><a href="https://sepolia.basescan.org/address/0x8edE7afc449CcA494fF3066aB020be143d784F91" target="_blank">0x8edE7afc449CcA494fF3066aB020be143d784F91 ↗</a></td>
+        </tr>
+        <tr>
+          <td>Scenario G — Very late</td>
+          <td>Base Sepolia</td>
+          <td class="addr"><a href="https://sepolia.basescan.org/address/0x87B5Afc78ca48D0EC62eEc7816884E0220c49978" target="_blank">0x87B5Afc78ca48D0EC62eEc7816884E0220c49978 ↗</a></td>
         </tr>
       </tbody>
     </table>
@@ -408,8 +419,8 @@
 
       <!-- B — MINOR DELAY -->
       <div class="scenario-card">
-        <h3>Scenario B — Minor delay</h3>
-        <div class="plain-label">Shipment arrived 1–4 days late</div>
+        <h3>Scenario B — Minor delay (v0.1)</h3>
+        <div class="plain-label">Shipment arrived 1–4 days late (v0.1 binary contract, not the graduated model)</div>
         <div class="sc-detail">
           <span class="label">Plain-language outcome</span>
           <strong>GenLayer classified as LATE. Refund executed under v0.1 binary logic.</strong>
@@ -484,6 +495,116 @@
         </div>
       </div>
 
+      <!-- D — MINOR DELAY -->
+      <div class="scenario-card">
+        <h3>Scenario D — Minor delay</h3>
+        <div class="plain-label">Shipment arrived 2 days late</div>
+        <div class="sc-detail">
+          <span class="label">Plain-language outcome</span>
+          <strong>99.5% released to exporter.</strong>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Technical classification</span>
+          <span class="mono" style="font-size:12px;">LATE_1_4</span>
+        </div>
+        <div class="verdict-tag amber"><span class="vd"></span> LATE_1_4 → 99.5% RELEASED</div>
+        <div class="sc-detail">
+          <span class="label">Economic consequence</span>
+          <strong>73,580.25 PEN (99.5%) released to exporter.</strong>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Contract</span>
+          <a href="https://sepolia.basescan.org/address/0x08FB300E1290Fa3e12cdeD8B2Bf050Edd46fFf73" target="_blank" class="mono" style="font-size:11px;">0x08FB…fF73 ↗</a>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Evidence</span>
+          Exporter's receipt showed departure Apr 5. Importer's gate record showed arrival Apr 7.
+        </div>
+        <div class="sc-detail">
+          <span class="label">GenLayer verdict reasoning</span>
+          Shipment was 2 days late.
+        </div>
+        <div class="sc-links">
+          <a href="https://internetcourt.org/cases/0x08FB300E1290Fa3e12cdeD8B2Bf050Edd46fFf73" target="_blank">IC docket ↗</a>
+          <a href="https://sepolia.basescan.org/tx/0x3d3b0f365c7db6b1b060b985f1ed7c25d71dcc4ac1b2624fb95d8fa1254421b5" target="_blank">bridge tx ↗</a>
+          <a href="https://explorer-studio.genlayer.com/transactions/0xdf87c6c4611f8f12eaec576708aa2aef918379bf51790adc6102c05385fd3812" target="_blank">AI jury tx ↗</a>
+        </div>
+      </div>
+
+
+
+      <!-- F — SIGNIFICANT DELAY -->
+      <div class="scenario-card">
+        <h3>Scenario F — Significant delay</h3>
+        <div class="plain-label">Shipment arrived 8 days late</div>
+        <div class="sc-detail">
+          <span class="label">Plain-language outcome</span>
+          <strong>98.5% released to exporter.</strong>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Technical classification</span>
+          <span class="mono" style="font-size:12px;">LATE_7_8</span>
+        </div>
+        <div class="verdict-tag amber"><span class="vd"></span> LATE_7_8 → 98.5% RELEASED</div>
+        <div class="sc-detail">
+          <span class="label">Economic consequence</span>
+          <strong>72,840.75 PEN (98.5%) released to exporter.</strong>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Contract</span>
+          <a href="https://sepolia.basescan.org/address/0x8edE7afc449CcA494fF3066aB020be143d784F91" target="_blank" class="mono" style="font-size:11px;">0x8edE…4F91 ↗</a>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Evidence</span>
+          Shipment crossed the border on Apr 13.
+        </div>
+        <div class="sc-detail">
+          <span class="label">GenLayer verdict reasoning</span>
+          Shipment was 8 days late.
+        </div>
+        <div class="sc-links">
+          <a href="https://internetcourt.org/cases/0x8edE7afc449CcA494fF3066aB020be143d784F91" target="_blank">IC docket ↗</a>
+          <a href="https://sepolia.basescan.org/tx/0xf9dcbc0ac3e5bd0263204cae573a303ceb4d9034bb4875d196141f5a33375780" target="_blank">bridge tx ↗</a>
+          <a href="https://explorer-studio.genlayer.com/transactions/0xc10b7c597681345e9ab364c940aa5199a110df0d7c9e8790b62f4d63a6b6bb5f" target="_blank">AI jury tx ↗</a>
+        </div>
+      </div>
+
+      <!-- G — VERY LATE -->
+      <div class="scenario-card">
+        <h3>Scenario G — Very late</h3>
+        <div class="plain-label">Shipment arrived 12 days late</div>
+        <div class="sc-detail">
+          <span class="label">Plain-language outcome</span>
+          <strong>Return required. Funds held in escrow.</strong>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Technical classification</span>
+          <span class="mono" style="font-size:12px;">VERY_LATE</span>
+        </div>
+        <div class="verdict-tag red"><span class="vd"></span> VERY_LATE → RETURN_REQUIRED</div>
+        <div class="sc-detail">
+          <span class="label">Economic consequence</span>
+          <strong>Funds remain in escrow.</strong> Importer must prove return or rejection.
+        </div>
+        <div class="sc-detail">
+          <span class="label">Contract</span>
+          <a href="https://sepolia.basescan.org/address/0x87B5Afc78ca48D0EC62eEc7816884E0220c49978" target="_blank" class="mono" style="font-size:11px;">0x87B5…978 ↗</a>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Evidence</span>
+          Shipment crossed the border on Apr 17.
+        </div>
+        <div class="sc-detail">
+          <span class="label">GenLayer verdict reasoning</span>
+          Shipment was 12 days late.
+        </div>
+        <div class="sc-links">
+          <a href="https://internetcourt.org/cases/0x87B5Afc78ca48D0EC62eEc7816884E0220c49978" target="_blank">IC docket ↗</a>
+          <a href="https://sepolia.basescan.org/tx/0x04d5874b4acf35a75c01c7101476ba560e1cd4e8accceb37d40565f5a35fee6f" target="_blank">bridge tx ↗</a>
+          <a href="https://explorer-studio.genlayer.com/transactions/0x68be2c64356a15dc4e223ed9e48dd61b9f2183ce5adbacbf10bb1e7db979071d" target="_blank">AI jury tx ↗</a>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -554,7 +675,7 @@
     </div>
 
     <!-- Scenario C evidence -->
-    <div style="margin-bottom:0;">
+    <div style="margin-bottom:36px;">
       <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Scenario C — Evidence unclear</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
         <div>
@@ -575,6 +696,83 @@
       <div style="font-size:14px;color:var(--muted);line-height:1.55;">
         <strong style="color:var(--amber);">Verdict: UNDETERMINED</strong> — Neither document yields a verifiable crossing timestamp. Illegible shipment ref, ambiguous date.<br/>
         <span class="mono" style="font-size:12px;">AI jury tx: <a href="https://explorer-studio.genlayer.com/transactions/0x9bcb2b9855eaf90d34175796c0a18569fb9e4bf81869dce98044d27f35846aab" target="_blank">0x9bcb…6aab ↗</a></span>
+      </div>
+    </div>
+
+    <!-- Scenario D evidence -->
+    <div style="margin-bottom:36px;">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Scenario D — Minor delay (graduated)</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Court Sheet A — Exporter evidence</div>
+          <a href="https://ipfs.io/ipfs/QmPJgqAuk9EWHGgE58hv6WmeBpvrYRokUEqXi3fs9tgFq7" target="_blank">
+            <img src="https://ipfs.io/ipfs/QmPJgqAuk9EWHGgE58hv6WmeBpvrYRokUEqXi3fs9tgFq7" alt="Court Sheet A — Minor delay" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);" loading="lazy" />
+          </a>
+          <div class="mono" style="font-size:11px;color:var(--muted);margin-top:4px;">QmPJgqAuk9EWHGgE58hv6WmeBpvrYRokUEqXi3fs9tgFq7</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Court Sheet B — Importer evidence</div>
+          <a href="https://ipfs.io/ipfs/QmZJVetdVoK59msaerPaucc3paRDrypgUdiKZ2x3rAu6Xh" target="_blank">
+            <img src="https://ipfs.io/ipfs/QmZJVetdVoK59msaerPaucc3paRDrypgUdiKZ2x3rAu6Xh" alt="Court Sheet B — Minor delay" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);" loading="lazy" />
+          </a>
+          <div class="mono" style="font-size:11px;color:var(--muted);margin-top:4px;">QmZJVetdVoK59msaerPaucc3paRDrypgUdiKZ2x3rAu6Xh</div>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.55;">
+        <strong style="color:var(--amber);">Verdict: LATE_1_4</strong> — Shipment was 2 days late. 50 bps penalty applied.<br/>
+        <span class="mono" style="font-size:12px;">AI jury tx: <a href="https://explorer-studio.genlayer.com/transactions/0xdf87c6c4611f8f12eaec576708aa2aef918379bf51790adc6102c05385fd3812" target="_blank">0xdf87…3812 ↗</a></span>
+      </div>
+    </div>
+
+
+
+    <!-- Scenario F evidence -->
+    <div style="margin-bottom:36px;">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Scenario F — Significant delay</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Court Sheet A — Exporter evidence</div>
+          <a href="https://ipfs.io/ipfs/QmQhnQx3XJ9ktrRE92Xy7QjM9BT1PUAaorjcZ97AKHzXRs" target="_blank">
+            <img src="https://ipfs.io/ipfs/QmQhnQx3XJ9ktrRE92Xy7QjM9BT1PUAaorjcZ97AKHzXRs" alt="Court Sheet A — Significant delay" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);" loading="lazy" />
+          </a>
+          <div class="mono" style="font-size:11px;color:var(--muted);margin-top:4px;">QmQhnQx3XJ9ktrRE92Xy7QjM9BT1PUAaorjcZ97AKHzXRs</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Court Sheet B — Importer evidence</div>
+          <a href="https://ipfs.io/ipfs/QmfJ3UWX72icpCobUxDssViaLsiJGk6qq4mZEddSuZVoNL" target="_blank">
+            <img src="https://ipfs.io/ipfs/QmfJ3UWX72icpCobUxDssViaLsiJGk6qq4mZEddSuZVoNL" alt="Court Sheet B — Significant delay" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);" loading="lazy" />
+          </a>
+          <div class="mono" style="font-size:11px;color:var(--muted);margin-top:4px;">QmfJ3UWX72icpCobUxDssViaLsiJGk6qq4mZEddSuZVoNL</div>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.55;">
+        <strong style="color:var(--amber);">Verdict: LATE_7_8</strong> — Shipment was 8 days late. 150 bps penalty applied.<br/>
+        <span class="mono" style="font-size:12px;">AI jury tx: <a href="https://explorer-studio.genlayer.com/transactions/0xc10b7c597681345e9ab364c940aa5199a110df0d7c9e8790b62f4d63a6b6bb5f" target="_blank">0xc10b…bb5f ↗</a></span>
+      </div>
+    </div>
+
+    <!-- Scenario G evidence -->
+    <div style="margin-bottom:0;">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Scenario G — Very late</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Court Sheet A — Exporter evidence</div>
+          <a href="https://ipfs.io/ipfs/QmbkgbCx3qQASGmFufJk1TMY76hJFgUrd6CjcZbxp7eVCu" target="_blank">
+            <img src="https://ipfs.io/ipfs/QmbkgbCx3qQASGmFufJk1TMY76hJFgUrd6CjcZbxp7eVCu" alt="Court Sheet A — Very late" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);" loading="lazy" />
+          </a>
+          <div class="mono" style="font-size:11px;color:var(--muted);margin-top:4px;">QmbkgbCx3qQASGmFufJk1TMY76hJFgUrd6CjcZbxp7eVCu</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Court Sheet B — Importer evidence</div>
+          <a href="https://ipfs.io/ipfs/QmQH94aKszWKkEqyWzu7411Ke6yQN9aKgQNbeCqYzhfmsu" target="_blank">
+            <img src="https://ipfs.io/ipfs/QmQH94aKszWKkEqyWzu7411Ke6yQN9aKgQNbeCqYzhfmsu" alt="Court Sheet B — Very late" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);" loading="lazy" />
+          </a>
+          <div class="mono" style="font-size:11px;color:var(--muted);margin-top:4px;">QmQH94aKszWKkEqyWzu7411Ke6yQN9aKgQNbeCqYzhfmsu</div>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.55;">
+        <strong style="color:var(--red);">Verdict: VERY_LATE</strong> — Shipment was 12 days late. RETURN_REQUIRED state triggered.<br/>
+        <span class="mono" style="font-size:12px;">AI jury tx: <a href="https://explorer-studio.genlayer.com/transactions/0x68be2c64356a15dc4e223ed9e48dd61b9f2183ce5adbacbf10bb1e7db979071d" target="_blank">0x68be…071d ↗</a></span>
       </div>
     </div>
   </div>
@@ -609,6 +807,25 @@
           <td class="addr"><a href="https://explorer-studio.genlayer.com/contracts/0xb7CC51a5A0D931B04eB07285224e7D52Ee295E48" target="_blank">0xb7CC…5E48 ↗</a></td>
           <td><strong style="color:var(--amber);">UNDETERMINED</strong></td>
           <td>4 agree · 1 disagree</td>
+        </tr>
+        <tr>
+          <td>D — Minor delay</td>
+          <td class="addr"><a href="https://explorer-studio.genlayer.com/contracts/0x7ccef76Cbf7D206fF430e5971d55147a5F39C8e5" target="_blank">0x7cce…9Ce5 ↗</a></td>
+          <td><strong style="color:var(--amber);">LATE_1_4</strong></td>
+          <td>5 agree · 0 disagree</td>
+        </tr>
+
+        <tr>
+          <td>F — Significant delay</td>
+          <td class="addr"><a href="https://explorer-studio.genlayer.com/contracts/0x7E23f5cC75fdcFCCa2EF81588D54c43da8b97D62" target="_blank">0x7E23…7D62 ↗</a></td>
+          <td><strong style="color:var(--amber);">LATE_7_8</strong></td>
+          <td>5 agree · 0 disagree</td>
+        </tr>
+        <tr>
+          <td>G — Very late</td>
+          <td class="addr"><a href="https://explorer-studio.genlayer.com/contracts/0x25395da2C50993053cDF89512997c94738FAa1C9" target="_blank">0x2539…A1C9 ↗</a></td>
+          <td><strong style="color:var(--red);">VERY_LATE</strong></td>
+          <td>5 agree · 0 disagree</td>
         </tr>
       </tbody>
     </table>
