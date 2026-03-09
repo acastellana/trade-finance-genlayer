@@ -363,7 +363,8 @@
   <div class="container">
     <div class="section-label">Disputed-Shipment Scenarios</div>
     <h2>Three parallel deployments — one per disputed-shipment outcome</h2>
-    <p style="font-size:15px;color:var(--muted);margin-bottom:28px;max-width:620px;">Each scenario contract was deployed with different disputed shipment evidence to produce a different GenLayer verdict. They are not branches of one live trade. The contract maps each classification to a payout split.</p>
+    <p style="font-size:15px;color:var(--muted);margin-bottom:12px;max-width:620px;">Each scenario contract was deployed with different disputed shipment evidence to produce a different GenLayer verdict. They are not branches of one live trade.</p>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:28px;max-width:620px;">The scenarios below verify the currently deployed buckets only. These were deployed under the v0.1 contract, which used binary verdict logic (timely → release, late → refund). The graduated penalty schedule shown in the economic model above is defined in the updated contract and will apply after redeployment.</p>
 
     <div class="scenario-grid">
 
@@ -411,16 +412,20 @@
         <div class="plain-label">Shipment arrived 1–4 days late</div>
         <div class="sc-detail">
           <span class="label">Plain-language outcome</span>
-          <strong>99.5% released. 0.5% adjustment returned to importer.</strong>
+          <strong>GenLayer classified as LATE. Refund executed under v0.1 binary logic.</strong>
         </div>
         <div class="sc-detail">
           <span class="label">Technical classification</span>
-          <span class="mono" style="font-size:12px;">LATE_1_4</span>
+          <span class="mono" style="font-size:12px;">LATE (v0.1) → LATE_1_4 under updated contract</span>
         </div>
-        <div class="verdict-tag red"><span class="vd"></span> LATE_1_4 → 99.5% RELEASED</div>
+        <div class="verdict-tag red"><span class="vd"></span> LATE → REFUND (v0.1)</div>
         <div class="sc-detail">
-          <span class="label">Economic consequence</span>
-          <strong>73,580.25 PEN (99.5%) to exporter. 369.75 PEN (0.5%) returned to importer.</strong>
+          <span class="label">V0.1 on-chain outcome</span>
+          <strong>73,950 PEN refunded to importer (binary late → refund).</strong>
+        </div>
+        <div class="sc-detail">
+          <span class="label">Updated contract outcome (after redeployment)</span>
+          <strong style="color:var(--muted);">99.5% release to exporter, 0.5% adjustment to importer.</strong>
         </div>
         <div class="sc-detail">
           <span class="label">Contract</span>
@@ -437,7 +442,7 @@
         <div class="sc-links">
           <a href="https://internetcourt.org/cases/0xbd0dB046A913817522B595CFEb922D5E2aad4268" target="_blank">IC docket ↗</a>
           <a href="https://sepolia.basescan.org/tx/0x57cb5fa07a798e8faf0c73ce183c02c4ff97a4a0ba329c3a194c475a66c6b879" target="_blank">contest tx ↗</a>
-          <a href="https://sepolia.basescan.org/tx/0x6dbf8870c8dfb02a6f4c5664913f138dfe93a4286c43c348c764caa2738b94c3" target="_blank">verdict + refund tx ↗</a>
+          <a href="https://sepolia.basescan.org/tx/0x6dbf8870c8dfb02a6f4c5664913f138dfe93a4286c43c348c764caa2738b94c3" target="_blank">verdict + settlement tx ↗</a>
           <a href="https://explorer-studio.genlayer.com/transactions/0xc7302e49a80e1997e43fffa7fb2d8b3c2ca9d93e1a8e61d5b73da25d63e5d3aa" target="_blank">AI jury tx ↗</a>
         </div>
       </div>
