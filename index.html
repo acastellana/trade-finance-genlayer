@@ -297,7 +297,10 @@
 
     <div class="sc-selector">
       <button class="sc-btn active green" onclick="pick('ontime',this)">On time</button>
-      <button class="sc-btn" onclick="pick('late',this)">Minor delay</button>
+      <button class="sc-btn" onclick="pick('minor',this)">Minor delay</button>
+      <button class="sc-btn" onclick="pick('moderate',this)">Moderate delay</button>
+      <button class="sc-btn" onclick="pick('significant',this)">Significant delay</button>
+      <button class="sc-btn" onclick="pick('verylate',this)">Very late</button>
       <button class="sc-btn" onclick="pick('unclear',this)">Evidence unclear</button>
     </div>
 
@@ -314,27 +317,81 @@
       <div class="sc-row">
         <div class="sc-row-label">What the contract did</div>
         <div class="sc-row-value" style="color:var(--green);">100% released</div>
-        <div class="sc-row-detail">73,950 PEN was released to the exporter.</div>
+        <div class="sc-row-detail">Exporter receives 73,950 PEN (100%)</div>
       </div>
       <a href="https://internetcourt.org/cases/0xb4700D67d6cBeF18011021A2A20389ea88753234" target="_blank" class="docket-link">Internet Court Docket ↗</a>
     </div>
 
     <!-- Minor delay -->
-    <div id="sc-late" class="sc-panel">
+    <div id="sc-minor" class="sc-panel">
       <div class="sc-row">
         <div class="sc-row-label">What happened</div>
         <div class="sc-row-text">Shipment timing was contested.</div>
       </div>
       <div class="sc-row">
         <div class="sc-row-label">What GenLayer found</div>
-        <div class="sc-row-text">The evidence supports that the shipment was delayed by 1–4 days.</div>
+        <div class="sc-row-text">The evidence supports that the shipment was delayed by 2 days.</div>
       </div>
       <div class="sc-row">
         <div class="sc-row-label">What the contract did</div>
-        <div class="sc-row-value" style="color:var(--red);">Settlement executed</div>
-        <div class="sc-row-detail">GenLayer classified the delay. The contract applied the pre-agreed consequence.<br/><span style="font-size:13px;color:var(--muted);">Representative outcome under the updated economic model: 99.5% release / 0.5% adjustment.</span></div>
+        <div class="sc-row-value" style="color:var(--amber);">Settlement adjusted</div>
+        <div class="sc-row-detail">Exporter receives 73,580.25 PEN (99.5%)</div>
       </div>
-      <a href="https://internetcourt.org/cases/0xbd0dB046A913817522B595CFEb922D5E2aad4268" target="_blank" class="docket-link">Internet Court Docket ↗</a>
+      <a href="https://internetcourt.org/cases/0x08FB300E1290Fa3e12cdeD8B2Bf050Edd46fFf73" target="_blank" class="docket-link">Internet Court Docket ↗</a>
+    </div>
+
+    <!-- Moderate delay -->
+    <div id="sc-moderate" class="sc-panel">
+      <div class="sc-row">
+        <div class="sc-row-label">What happened</div>
+        <div class="sc-row-text">Shipment timing was contested.</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-label">What GenLayer found</div>
+        <div class="sc-row-text">The evidence supports that the shipment was delayed by 5 days.</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-label">What the contract did</div>
+        <div class="sc-row-value" style="color:var(--amber);">Settlement adjusted</div>
+        <div class="sc-row-detail">Exporter receives 73,210.50 PEN (99.0%)</div>
+      </div>
+      <a href="https://internetcourt.org/cases/0xD42d18beA9c22e6c230B5EE116e9BCAC8757a6eC" target="_blank" class="docket-link">Internet Court Docket ↗</a>
+    </div>
+
+    <!-- Significant delay -->
+    <div id="sc-significant" class="sc-panel">
+      <div class="sc-row">
+        <div class="sc-row-label">What happened</div>
+        <div class="sc-row-text">Shipment timing was contested.</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-label">What GenLayer found</div>
+        <div class="sc-row-text">The evidence supports that the shipment was delayed by 8 days.</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-label">What the contract did</div>
+        <div class="sc-row-value" style="color:var(--amber);">Settlement adjusted</div>
+        <div class="sc-row-detail">Exporter receives 72,840.75 PEN (98.5%)</div>
+      </div>
+      <a href="https://internetcourt.org/cases/0x8edE7afc449CcA494fF3066aB020be143d784F91" target="_blank" class="docket-link">Internet Court Docket ↗</a>
+    </div>
+
+    <!-- Very late -->
+    <div id="sc-verylate" class="sc-panel">
+      <div class="sc-row">
+        <div class="sc-row-label">What happened</div>
+        <div class="sc-row-text">Shipment timing was contested.</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-label">What GenLayer found</div>
+        <div class="sc-row-text">The evidence supports that the shipment was delayed by 12 days.</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-label">What the contract did</div>
+        <div class="sc-row-value" style="color:var(--red);">Return required</div>
+        <div class="sc-row-detail">Funds remain in escrow. The buyer must prove goods were returned or formally rejected within 14 days. If no proof is submitted, the highest penalty tier applies (98.5% to exporter).</div>
+      </div>
+      <a href="https://internetcourt.org/cases/0x87B5Afc78ca48D0EC62eEc7816884E0220c49978" target="_blank" class="docket-link">Internet Court Docket ↗</a>
     </div>
 
     <!-- Evidence unclear -->
@@ -427,7 +484,7 @@ function pick(state, btn) {
   document.querySelectorAll('.sc-btn').forEach(b => { b.classList.remove('active', 'green', 'red', 'amber'); });
   btn.classList.add('active');
   if (state === 'ontime') btn.classList.add('green');
-  else if (state === 'late') btn.classList.add('red');
+  else if (state === 'verylate') btn.classList.add('red');
   else btn.classList.add('amber');
 
   // Panels — show only selected
@@ -438,14 +495,15 @@ function pick(state, btn) {
   const d = document.getElementById('dot5');
   d.className = 'tl-dot s5';
   if (state === 'ontime') d.classList.add('timely');
-  else if (state === 'late') d.classList.add('late');
+  else if (state === 'verylate') d.classList.add('late');
   else d.classList.add('manual');
 
   // Step 5 title
   const t = document.getElementById('step5-title');
   if (state === 'ontime') t.textContent = 'Settlement released';
-  else if (state === 'late') t.textContent = 'Settlement adjusted';
-  else t.textContent = 'Pending manual review';
+  else if (state === 'verylate') t.textContent = 'Return required';
+  else if (state === 'unclear') t.textContent = 'Pending manual review';
+  else t.textContent = 'Settlement adjusted';
 }
 </script>
 

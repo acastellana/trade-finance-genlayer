@@ -1,0 +1,78 @@
+[
+  {
+    "label": "D_LATE_1_4",
+    "caseId": "qc-coop-2026-0006",
+    "expected": "LATE_1_4 (2 days late \u2192 99.5% release)",
+    "txs": {
+      "requestRateLock": "0x5a8985ae99f61516b1cb5e15a8a9f7d1eaa26fe038a4ad24c904477a5cd99fcd",
+      "receiveRate": "0x9c9afbf6315536a356d1a8112d5aafbdb94fedbda7c175a730a8739ffd9a50ee",
+      "approve": "0x0b9fe51dfd2af5e61d070a8a5d0375c360b3cae0338a2272f24c7ac57d567e09",
+      "fundSettlement": "0xba6f186c4a5e82c8fce4c2cfc4ffd2b2a50bd0d22e5cb6be193956c43f960e31",
+      "contestShipment": "0x0f923f5f4ec87f375403efd864b2a8e5f1ca519124bdb6a35c721a4cd632b175"
+    },
+    "contract": "0x08FB300E1290Fa3e12cdeD8B2Bf050Edd46fFf73",
+    "shipmentStatus": 0,
+    "fundedAmount": "73950",
+    "verdict": "LATE_1_4",
+    "exporter": "73580.25",
+    "importer": "369.75",
+    "penalty_bps": 50
+  },
+  {
+    "label": "E_LATE_5_6",
+    "caseId": "qc-coop-2026-0007",
+    "expected": "LATE_5_6 (5 days late \u2192 99.0% release)",
+    "txs": {
+      "requestRateLock": "0xcc35543b1baa8d6ac2fbe84c290160bd22d954ddcb74b11adace681dda7be38d",
+      "receiveRate": "0xaa33dc0f53ceb25b6394fab7e0666b90f98ce8a4c6c91fe6d0a4e7382c0cc20b",
+      "approve": "0x5ce4e3a6b0ccfc3cb4f11234f50b8b33ecb0054a5f368767cf83f468b50a3115",
+      "fundSettlement": "0xcfdacaf99c1a605a156274a88d75bfa943870787810acead302977dcdace71dc",
+      "contestShipment": "0x2ed8a817e76d0e0aba68a362c6847b6ec3f4ec99b903794082afbde36533d76e"
+    },
+    "contract": "0xD42d18beA9c22e6c230B5EE116e9BCAC8757a6eC",
+    "shipmentStatus": 0,
+    "fundedAmount": "73950",
+    "verdict": "LATE_5_6",
+    "exporter": "73210.50",
+    "importer": "739.50",
+    "penalty_bps": 100
+  },
+  {
+    "label": "F_LATE_7_8",
+    "caseId": "qc-coop-2026-0008",
+    "expected": "LATE_7_8 (8 days late \u2192 98.5% release)",
+    "txs": {
+      "requestRateLock": "0x95d2e967df0e827fb77d62a16a97b0784cff4ab7ebdace73556a4d03339148bd",
+      "receiveRate": "0xf8da0202e3e6cc9a4ce45c823461420989a24fb10c69ccfb221acdabe5f64fcb",
+      "approve": "0x0f5868af5329732d18cfe6519f819902a820886a0f59efc707959f5ce418730b",
+      "fundSettlement": "0x5e806825f7410e417dc3f5737d153c96605c55294e3a0610f0b54f549de5e3bf",
+      "contestShipment": "0x54cf1571449f46a50c0aaf80b51c1205a8a13ef3fc0582a9f52f07ff77027e42"
+    },
+    "contract": "0x8edE7afc449CcA494fF3066aB020be143d784F91",
+    "shipmentStatus": 0,
+    "fundedAmount": "73950",
+    "verdict": "LATE_7_8",
+    "exporter": "72840.75",
+    "importer": "1109.25",
+    "penalty_bps": 150
+  },
+  {
+    "label": "G_VERY_LATE",
+    "caseId": "qc-coop-2026-0009",
+    "expected": "VERY_LATE (12 days late \u2192 RETURN_REQUIRED, no auto-refund)",
+    "txs": {
+      "requestRateLock": "0x545030f70a0d49cba5a4a87cc0d413adae0ec3b05bcbd2f79b39752e445dacb3",
+      "receiveRate": "0xb9e29908b2989d917105312a5ff33bda9590dc3c7af2fdaa84d4092c541fc5cb",
+      "approve": "0xbcc412937955ef4fe9affe95145f9a5050703ca4440657271714cdf8da03fa4e",
+      "fundSettlement": "0xe9bba81329fbe6614b92e63c53c7e1727482acc997c31499716a7bf18c0ea3b0",
+      "contestShipment": "0xd1bd8dbf48f980613e6b3d21d11d1d14b70a5d4817f263c6082c427fe8e04bcc"
+    },
+    "contract": "0x87B5Afc78ca48D0EC62eEc7816884E0220c49978",
+    "shipmentStatus": 0,
+    "fundedAmount": "73950",
+    "verdict": "VERY_LATE",
+    "state": "RETURN_REQUIRED",
+    "escrow": "73950.00",
+    "returnProofDeadline": "2026-03-23T16:08:00Z"
+  }
+]
