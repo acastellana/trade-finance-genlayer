@@ -83,7 +83,7 @@ class ShipmentDeadlineCourt(gl.Contract):
     target_chain_eid:      u256  # LayerZero EID for Base Sepolia (40245)
     verdict:               str
     verdict_reason:        str
-    days_late:             int   # Number of days late (-1 if undetermined)
+    days_late:             str   # Number of days late as string ("-1" if undetermined)
 
     def __init__(
         self,
@@ -95,6 +95,7 @@ class ShipmentDeadlineCourt(gl.Contract):
         court_sheet_b_cid: str,
         bridge_sender: str,
         target_chain_eid: int,
+        target_contract: str,  # InternetCourtFactory on Base Sepolia
     ):
         if guideline_version not in GUIDELINES:
             raise Exception(f"ShipmentCourt: unknown guideline '{guideline_version}'")
@@ -214,9 +215,9 @@ Output ONLY valid JSON, no other text:
             r = parsed.get("reason", "").strip()
             dl = parsed.get("days_late")
             if dl is None:
-                dl = -1
+                dl = "-1"
             else:
-                dl = int(dl)
+                dl = str(int(dl))
         except Exception as e:
             v = "UNDETERMINED"
             r = f"Failed to parse evaluation response: {str(e)}"
@@ -226,7 +227,7 @@ Output ONLY valid JSON, no other text:
         if v not in valid_verdicts:
             v = "UNDETERMINED"
             r = f"Unexpected verdict value, defaulting to UNDETERMINED. Original reason: {r}"
-            dl = -1
+            dl = "-1"
 
         self.verdict       = v
         self.verdict_reason = r
@@ -256,11 +257,11 @@ Output ONLY valid JSON, no other text:
             [Address(settlement_contract), resolution_data]
         )[4:]  # strip selector
 
-        # Send via bridge → LayerZero → Base Sepolia
+        # Send via bridge → zkSync Sepolia → LayerZero → Base Sepolia
         bridge = gl.get_contract_at(Address(bridge_sender))
         bridge.emit().send_message(
             int(self.target_chain_eid),
-            settlement_contract,
+            target_contract,   # ← targets InternetCourtFactory, which dispatches to settlement
             message_bytes
         )
 
