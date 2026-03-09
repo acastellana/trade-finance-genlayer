@@ -3,347 +3,153 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Story — Trade Finance × GenLayer</title>
+  <title>FX Settlement Engine — Trade Finance × GenLayer</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #ffffff;
-      --card: #f8f8f6;
-      --dark: #1a1817;
-      --muted: #74706c;
-      --border: #e8e6e3;
-      --green: #15803d;
-      --green-light: #dcfce7;
-      --blue: #1d4ed8;
-      --amber: #b45309;
-      --amber-light: #fef3c7;
-      --red: #dc2626;
-      --red-light: #fee2e2;
-      --purple: #7c3aed;
-      --radius: 12px;
-      --radius-xl: 20px;
+      --bg: #ffffff; --card: #f8f8f6; --dark: #1a1817; --muted: #74706c;
+      --border: #e8e6e3; --green: #15803d; --green-light: #dcfce7;
+      --blue: #1d4ed8; --amber: #b45309; --amber-light: #fef3c7;
+      --red: #dc2626; --red-light: #fee2e2; --purple: #7c3aed;
+      --radius: 12px; --radius-xl: 20px;
       --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
       --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
-      --container-width: 1040px;
     }
-    body {
-      font-family: 'DM Sans', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--dark);
-      font-size: 18px;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-    .container { max-width: var(--container-width); margin: 0 auto; padding: 0 40px; }
-    .section-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 24px;
-      display: block;
-    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--dark); font-size: 18px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 40px; }
+    .section-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; display: block; }
 
     /* ── HEADER ── */
-    header {
-      padding: 32px 0;
-    }
-    .header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: var(--dark);
-      font-weight: 700;
-      font-size: 16px;
-    }
-    .logo-chip {
-      background: var(--dark);
-      color: #fff;
-      border-radius: 6px;
-      padding: 3px 10px;
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      font-weight: 600;
-    }
-    .btn-outline {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: transparent;
-      color: var(--dark);
-      border: 1px solid var(--border);
-      border-radius: 9999px;
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-    .btn-outline:hover {
-      background: var(--card);
-      border-color: var(--dark);
-    }
-
-    /* ── SECTIONS ── */
-    section { padding: 120px 0; border-bottom: 1px solid var(--border); }
-    section:last-of-type { border-bottom: none; }
+    header { padding: 28px 0; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--dark); font-weight: 700; font-size: 15px; }
+    .logo-chip { background: var(--dark); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 600; }
+    .btn-outline { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 9999px; padding: 8px 18px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all 0.15s; }
+    .btn-outline:hover { border-color: var(--dark); color: var(--dark); }
 
     /* ── HERO ── */
-    .hero { padding-top: 60px; text-align: center; }
-    .hero-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 9999px;
-      padding: 6px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      margin-bottom: 40px;
-    }
-    .hero-eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
-    .hero h1 {
-      font-size: clamp(40px, 6vw, 64px);
-      font-weight: 700;
-      line-height: 1.05;
-      letter-spacing: -0.03em;
-      max-width: 900px;
-      margin: 0 auto 32px;
-    }
-    .hero-sub {
-      font-size: 22px;
-      color: var(--muted);
-      max-width: 720px;
-      margin: 0 auto 48px;
-      line-height: 1.5;
-    }
-    .scroll-indicator {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .scroll-line { width: 1px; height: 60px; background: linear-gradient(to bottom, var(--border), transparent); }
+    .hero { padding: 80px 0 72px; }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 9999px; padding: 4px 14px; font-size: 12px; font-weight: 600; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 32px; }
+    .hero-eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .hero h1 { font-size: clamp(34px, 5vw, 52px); font-weight: 700; line-height: 1.08; letter-spacing: -1.5px; max-width: 720px; margin-bottom: 28px; }
+    .hero-body { font-size: 19px; color: var(--muted); line-height: 1.75; max-width: 560px; margin-bottom: 32px; }
+    .hero-body strong { color: var(--dark); }
+    .hero-contrast { max-width: 560px; padding: 22px 26px; background: var(--card); border-left: 3px solid var(--dark); border-radius: 0 var(--radius) var(--radius) 0; font-size: 17px; line-height: 1.75; color: var(--muted); }
+    .hero-contrast strong { color: var(--dark); }
 
-    /* ── THE TRADE SETUP ── */
-    .setup-section { background: var(--bg); }
-    .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-    .setup-content h2 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 24px; }
-    .setup-content p { color: var(--muted); margin-bottom: 32px; font-size: 19px; }
-    .setup-visual {
-      background: var(--card);
-      border-radius: var(--radius-xl);
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      box-shadow: var(--shadow-sm);
-    }
-    .route-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 24px;
-    }
-    .route-point { display: flex; flex-direction: column; }
-    .route-label { font-size: 12px; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
-    .route-city { font-size: 20px; font-weight: 700; }
-    .route-arrow { color: var(--border); font-size: 24px; }
+    /* ── SECTIONS ── */
+    section { padding: 96px 0; border-top: 1px solid var(--border); }
 
-    /* ── DETERMINISTIC FLOW ── */
-    .flow-section { background: var(--card); }
-    .flow-header { text-align: center; max-width: 700px; margin: 0 auto 80px; }
-    .flow-header h2 { font-size: 42px; font-weight: 700; margin-bottom: 20px; }
-    .flow-steps {
-      display: grid;
-      grid-template-columns: 1fr 1px 1fr;
-      gap: 40px;
-      align-items: start;
-    }
-    .flow-step { padding: 40px; background: #fff; border-radius: var(--radius-xl); border: 1px solid var(--border); }
-    .flow-divider { background: var(--border); width: 1px; height: 100%; align-self: stretch; }
-    .step-num {
-      width: 32px; height: 32px; border-radius: 50%; background: var(--dark); color: #fff;
-      display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace;
-      font-size: 14px; font-weight: 700; margin-bottom: 24px;
-    }
-    .step-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
-    .step-desc { color: var(--muted); font-size: 17px; margin-bottom: 24px; }
-    .data-box {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px 20px;
-      font-family: 'DM Mono', monospace;
-    }
-    .data-row { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; }
-    .data-label { color: var(--muted); }
-    .data-value { font-weight: 600; color: var(--dark); }
-    .data-value.highlight { color: var(--green); }
+    /* ── EXAMPLE TRADE ── */
+    .trade-section { background: var(--dark); border-top: none; }
+    .trade-section .section-label { color: rgba(255,255,255,0.3); }
+    .trade-section h2 { font-size: clamp(24px, 3.5vw, 36px); font-weight: 700; letter-spacing: -0.7px; color: #fff; margin-bottom: 40px; }
+    .trade-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0; max-width: 600px; }
+    .trade-field { padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .trade-field:nth-child(odd) { padding-right: 32px; }
+    .trade-field:nth-child(even) { padding-left: 32px; border-left: 1px solid rgba(255,255,255,0.06); }
+    .trade-field-label { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
+    .trade-field-value { font-size: 16px; font-weight: 600; color: #fff; }
+    .trade-field-value.mono { font-family: 'DM Mono', monospace; font-size: 15px; }
+    .trade-field-value.green { color: #86efac; }
+    .trade-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(21,128,61,0.2); border: 1px solid rgba(21,128,61,0.3); border-radius: 9999px; padding: 2px 10px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; color: #86efac; }
+    .trade-badge .bdot { width: 6px; height: 6px; border-radius: 50%; background: #86efac; }
 
-    /* ── THE DRAMATIC TURN ── */
-    .turn-section {
-      background: var(--dark);
-      color: #fff;
-      text-align: center;
-      padding: 160px 0;
-      position: relative;
-      overflow: hidden;
-    }
-    .turn-section::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(circle at center, rgba(220,38,38,0.15) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .turn-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--red);
-      margin-bottom: 32px;
-      display: block;
-    }
-    .turn-section h2 {
-      font-size: clamp(48px, 8vw, 84px);
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: -0.04em;
-      margin-bottom: 32px;
-    }
-    .turn-sub {
-      font-size: 24px;
-      color: rgba(255,255,255,0.6);
-      max-width: 640px;
-      margin: 0 auto;
-    }
+    /* ── TRADE EXPLANATION ── */
+    .explanation h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 24px; max-width: 620px; }
+    .explanation-body { font-size: 17px; color: var(--muted); line-height: 1.75; max-width: 600px; }
+    .explanation-body strong { color: var(--dark); }
+    .explanation-list { list-style: none; margin: 20px 0; padding: 0; }
+    .explanation-list li { position: relative; padding-left: 20px; margin-bottom: 8px; color: var(--muted); font-size: 17px; }
+    .explanation-list li::before { content: "–"; position: absolute; left: 0; color: var(--border); font-weight: 700; }
 
-    /* ── THREE OUTCOMES ── */
-    .outcomes-section { background: #fff; }
-    .outcomes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 60px; }
-    .outcome-card {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 32px;
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .outcome-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
-    .outcome-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border-radius: 9999px;
-      padding: 4px 12px;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      margin-bottom: 24px;
-      align-self: flex-start;
-    }
-    .outcome-badge.on-time { background: var(--green-light); color: var(--green); }
-    .outcome-badge.late { background: var(--red-light); color: var(--red); }
-    .outcome-badge.undetermined { background: var(--amber-light); color: var(--amber); }
-
-    .outcome-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
-    .outcome-desc { font-size: 15px; color: var(--muted); margin-bottom: 24px; flex-grow: 1; }
-    .outcome-result {
-      padding: 20px 0;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
-    }
-    .result-label { font-size: 12px; color: var(--muted); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
-    .result-value { font-size: 18px; font-weight: 700; }
-    .docket-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      color: var(--dark);
-      font-size: 13px;
-      font-weight: 600;
-      transition: color 0.2s;
-    }
-    .docket-link:hover { color: var(--blue); }
-    .docket-link svg { width: 14px; height: 14px; }
+    /* ── LIFECYCLE ── */
+    .lifecycle h2 { font-size: clamp(24px, 3.2vw, 36px); font-weight: 700; letter-spacing: -0.6px; margin-bottom: 8px; }
+    .lifecycle-sub { font-size: 17px; color: var(--muted); margin-bottom: 56px; }
+    .tl-steps { display: flex; flex-direction: column; max-width: 600px; }
+    .tl-step { display: flex; gap: 22px; }
+    .tl-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 36px; }
+    .tl-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .tl-dot.s1 { background: var(--card); border: 2px solid var(--border); color: var(--muted); }
+    .tl-dot.s2 { background: var(--green-light); border: 2px solid rgba(21,128,61,0.3); color: var(--green); }
+    .tl-dot.s3 { background: #dbeafe; border: 2px solid rgba(29,78,216,0.3); color: var(--blue); }
+    .tl-dot.s4 { background: var(--amber-light); border: 2px solid rgba(180,83,9,0.3); color: var(--amber); }
+    .tl-dot.s5 { background: var(--dark); border: 2px solid var(--dark); color: #fff; }
+    .tl-spine { width: 2px; flex: 1; min-height: 20px; background: var(--border); margin-top: 2px; }
+    .tl-step:last-child .tl-spine { display: none; }
+    .tl-body { flex: 1; padding-bottom: 40px; }
+    .tl-step:last-child .tl-body { padding-bottom: 0; }
+    .tl-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .tl-desc { font-size: 16px; color: var(--muted); line-height: 1.6; }
+    .tl-desc strong { color: var(--dark); }
 
     /* ── WHY GENLAYER ── */
-    .why-section { background: var(--card); }
-    .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
-    .why-content h2 { font-size: 42px; font-weight: 700; margin-bottom: 24px; }
-    .why-content p { color: var(--muted); margin-bottom: 24px; }
-    .boundary-viz {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .viz-box {
-      padding: 24px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: #fff;
-    }
-    .viz-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
-    .viz-text { font-size: 16px; font-weight: 500; }
-    .viz-box.highlight { border-color: var(--dark); background: var(--dark); color: #fff; }
+    .why-section h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+    .why-intro { font-size: 17px; color: var(--muted); line-height: 1.75; max-width: 600px; margin-bottom: 40px; }
+    .why-intro strong { color: var(--dark); }
+    .why-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+    .why-card { padding: 24px; border-radius: var(--radius-xl); }
+    .why-card.can { background: var(--green-light); }
+    .why-card.cannot { background: var(--red-light); }
+    .why-card.does { background: var(--card); border: 2px solid var(--dark); }
+    .why-card-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+    .why-card.can .why-card-label { color: var(--green); }
+    .why-card.cannot .why-card-label { color: var(--red); }
+    .why-card.does .why-card-label { color: var(--dark); }
+    .why-card-text { font-size: 16px; line-height: 1.5; }
+    .why-card.can .why-card-text { color: var(--green); }
+    .why-card.cannot .why-card-text { color: var(--red); }
+    .why-card.does .why-card-text { color: var(--dark); font-weight: 600; }
+    .why-closing { font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 560px; }
+    .why-closing strong { color: var(--dark); }
 
-    /* ── PROOF & FOOTER ── */
-    .proof-strip { padding: 40px 0; background: var(--dark); color: #fff; }
-    .proof-inner { display: flex; align-items: center; justify-content: space-between; }
-    .proof-info { display: flex; align-items: center; gap: 24px; font-family: 'DM Mono', monospace; font-size: 13px; }
-    .proof-link { color: #fff; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .proof-link:hover { opacity: 0.8; }
+    /* ── SHIPMENT OUTCOMES ── */
+    .outcomes h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+    .outcomes-intro { font-size: 17px; color: var(--muted); line-height: 1.75; max-width: 620px; margin-bottom: 48px; }
+    .outcomes-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .outcome-card { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px; display: flex; flex-direction: column; }
+    .outcome-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+    .outcome-card.ontime .outcome-label { color: var(--green); }
+    .outcome-card.late .outcome-label { color: var(--red); }
+    .outcome-card.unclear .outcome-label { color: var(--amber); }
+    .outcome-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+    .outcome-desc { font-size: 15px; color: var(--muted); line-height: 1.55; margin-bottom: 20px; flex-grow: 1; }
+    .outcome-result { padding: 16px 0; border-top: 1px solid var(--border); margin-bottom: 16px; }
+    .outcome-result-label { font-size: 12px; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .outcome-result-value { font-size: 17px; font-weight: 700; }
+    .outcome-result-detail { font-size: 14px; color: var(--muted); margin-top: 4px; }
+    .docket-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--dark); font-size: 13px; font-weight: 600; transition: color 0.15s; }
+    .docket-link:hover { color: var(--blue); }
 
-    footer { padding: 80px 0 40px; background: #fff; }
-    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
-    .footer-brand .logo { margin-bottom: 16px; }
-    .footer-brand p { color: var(--muted); font-size: 14px; max-width: 320px; }
-    .footer-col h4 { font-size: 14px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .footer-links { list-style: none; }
-    .footer-links li { margin-bottom: 12px; }
-    .footer-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+    /* ── PROOF STRIP ── */
+    .proof-strip { padding: 36px 0; border-top: 1px solid var(--border); }
+    .proof-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .proof-left { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .proof-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+    .proof-link { font-size: 14px; font-weight: 600; color: var(--dark); text-decoration: none; }
+    .proof-link:hover { text-decoration: underline; }
+
+    /* ── FOOTER ── */
+    footer { padding: 48px 0 28px; }
+    .footer-inner { display: flex; gap: 40px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 24px; }
+    .footer-left { max-width: 400px; }
+    .footer-logo { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 8px; }
+    .footer-note { font-size: 13px; line-height: 1.65; color: var(--muted); }
+    .footer-links { display: flex; flex-direction: column; gap: 8px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 13px; }
     .footer-links a:hover { color: var(--dark); }
-    .footer-bottom {
-      border-top: 1px solid var(--border);
-      padding-top: 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 16px; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); opacity: 0.4; }
 
-    @media (max-width: 960px) {
-      .setup-grid, .flow-steps, .outcomes-grid, .why-grid, .footer-grid { grid-template-columns: 1fr; }
-      .flow-steps { gap: 24px; }
-      .flow-divider { display: none; }
-      .outcomes-grid { gap: 32px; }
-      section { padding: 80px 0; }
+    @media (max-width: 860px) {
+      .trade-fields { grid-template-columns: 1fr; }
+      .trade-field:nth-child(even) { padding-left: 0; border-left: none; }
+      .trade-field:nth-child(odd) { padding-right: 0; }
+      .why-cards, .outcomes-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -352,250 +158,247 @@
 <header>
   <div class="container">
     <div class="header-inner">
-      <a href="#" class="logo">
-        <span class="logo-chip">FX</span> Trade Finance × GenLayer
-      </a>
-      <a href="proof.html" class="btn-outline">Technical Proofs →</a>
+      <a href="#" class="logo"><span class="logo-chip">FX</span> Trade Finance × GenLayer</a>
+      <a href="proof.html" class="btn-outline">Under the hood →</a>
     </div>
   </div>
 </header>
 
-<!-- 1. HERO -->
-<section class="hero">
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero" style="border-top:none;">
   <div class="container">
-    <div class="hero-eyebrow">
-      <span class="dot"></span> Live on Base Sepolia · GenLayer Studionet
+    <div class="hero-eyebrow"><span class="dot"></span> Live on Base Sepolia · GenLayer Studionet</div>
+    <h1>Cross-border settlement that continues even when the facts are disputed</h1>
+    <div class="hero-body">
+      A Bolivian exporter invoices in BOB.<br/>
+      A Peruvian importer settles in PEN through conditional escrow.<br/><br/>
+      GenLayer locks the benchmark, then steps in only if the trade hits a disputed real-world fact.
     </div>
-    <h1>Cross-border settlement that continues even when facts are disputed</h1>
-    <p class="hero-sub">
-      A Bolivian exporter, a Peruvian importer, and a trade that doesn't freeze when the real world gets messy.
-    </p>
-    <div class="scroll-indicator">
-      <span>The Story</span>
-      <div class="scroll-line"></div>
+    <div class="hero-contrast">
+      A normal oracle can return a benchmark rate.
+      It cannot resolve conflicting shipment evidence.<br/>
+      <strong>GenLayer is what lets the contract continue when that happens.</strong>
     </div>
   </div>
 </section>
 
-<!-- 2. THE TRADE SETUP -->
-<section class="setup-section">
-  <div class="container">
-    <div class="setup-grid">
-      <div class="setup-content">
-        <span class="section-label">01 / The Setup</span>
-        <h2>Quinoa export: Bolivia to Peru</h2>
-        <p>A Bolivian exporter invoices <strong>150,000 BOB</strong> for a bulk shipment. The Peruvian importer agrees to settle in <strong>PEN</strong> based on the exchange rate at the time of contract funding.</p>
-        <p>This isn't just a theoretical model—it's a real trade executed on-chain.</p>
-      </div>
-      <div class="setup-visual">
-        <div class="route-card">
-          <div class="route-point">
-            <span class="route-label">From</span>
-            <span class="route-city">🇧🇴 Bolivia</span>
-          </div>
-          <span class="route-arrow">→</span>
-          <div class="route-point">
-            <span class="route-label">To</span>
-            <span class="route-city">🇵🇪 Peru</span>
-          </div>
-        </div>
-        <div class="data-box">
-          <div class="data-row">
-            <span class="data-label">Invoice Amount</span>
-            <span class="data-value">150,000 BOB</span>
-          </div>
-          <div class="data-row">
-            <span class="data-label">Settlement Currency</span>
-            <span class="data-value">PEN</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- 3. THE DETERMINISTIC PART -->
-<section class="flow-section">
+<!-- ═══════ EXAMPLE TRADE ═══════ -->
+<section class="trade-section">
   <div class="container">
-    <div class="flow-header">
-      <span class="section-label">02 / Automation</span>
-      <h2>The deterministic phase</h2>
-      <p>Before things get complicated, the contract handles the verifiable numbers. This part is automated through standard validator consensus.</p>
-    </div>
-    <div class="flow-steps">
-      <div class="flow-step">
-        <div class="step-num">2</div>
-        <h3 class="step-title">Benchmark Locked</h3>
-        <p class="step-desc">GenLayer validators query global FX markets and lock the exchange rate.</p>
-        <div class="data-box">
-          <div class="data-row">
-            <span class="data-label">Exchange Rate</span>
-            <span class="data-value highlight">0.493 PEN / BOB</span>
-          </div>
-        </div>
+    <div class="section-label">Example trade</div>
+    <h2>Example trade</h2>
+    <div class="trade-fields">
+      <div class="trade-field">
+        <div class="trade-field-label">Exporter</div>
+        <div class="trade-field-value">Cooperativa Agrícola Andina</div>
       </div>
-      <div class="flow-divider"></div>
-      <div class="flow-step">
-        <div class="step-num">3</div>
-        <h3 class="step-title">Escrow Funded</h3>
-        <p class="step-desc">The importer pre-funds the conditional settlement escrow on Base Sepolia.</p>
-        <div class="data-box">
-          <div class="data-row">
-            <span class="data-label">Locked Value</span>
-            <span class="data-value">73,950 PEN</span>
-          </div>
-        </div>
+      <div class="trade-field">
+        <div class="trade-field-label">Importer</div>
+        <div class="trade-field-value">Alimentos del Pacífico SAC</div>
+      </div>
+      <div class="trade-field">
+        <div class="trade-field-label">Invoice</div>
+        <div class="trade-field-value mono">150,000 BOB</div>
+      </div>
+      <div class="trade-field">
+        <div class="trade-field-label">Benchmark</div>
+        <div class="trade-field-value mono green">0.493 PEN / BOB</div>
+      </div>
+      <div class="trade-field">
+        <div class="trade-field-label">Conditional settlement</div>
+        <div class="trade-field-value mono">73,950 PEN</div>
+      </div>
+      <div class="trade-field">
+        <div class="trade-field-label">Current state</div>
+        <div class="trade-field-value"><span class="trade-badge"><span class="bdot"></span> Settled</span></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 4. THE DRAMATIC TURN -->
-<section class="turn-section">
+
+<!-- ═══════ TRADE EXPLANATION ═══════ -->
+<section class="explanation">
   <div class="container">
-    <span class="turn-label">The Friction</span>
-    <h2>Then the shipment is contested</h2>
-    <p class="turn-sub">
-      The goods arrive, but the parties disagree on the date. The exporter claims "on time." The importer claims "late." 
-      Traditional smart contracts would stall here.
-    </p>
+    <h2>One trade. One settlement flow. One exception path only when needed.</h2>
+    <div class="explanation-body">
+      <p>This prototype follows a single cross-border trade from invoice to settlement.</p>
+      <p style="margin-top:16px;">The contract handles the parts that are easy to verify:</p>
+      <ul class="explanation-list">
+        <li>the invoice amount</li>
+        <li>the benchmark rate</li>
+        <li>the settlement amount</li>
+      </ul>
+      <p style="margin-top:16px;">If shipment timing becomes contested, GenLayer evaluates the evidence and returns the fact the contract needs in order to continue.</p>
+    </div>
   </div>
 </section>
 
-<!-- 5. THREE OUTCOMES -->
-<section class="outcomes-section">
+
+<!-- ═══════ LIFECYCLE ═══════ -->
+<section class="lifecycle">
   <div class="container">
-    <span class="section-label">03 / Resolution</span>
-    <h2 style="font-size: 42px; font-weight: 700; text-align: center;">GenLayer classifies the outcome</h2>
-    <p style="text-align: center; color: var(--muted); max-width: 700px; margin: 20px auto 0;">
-      The "Internet Court" evaluates the shipping evidence (dockets, sensor logs, photos) and returns a verdict. The contract then applies the pre-agreed remedy.
-    </p>
-    
-    <div class="outcomes-grid">
-      <!-- Outcome 1: On Time -->
-      <div class="outcome-card">
-        <div class="outcome-badge on-time">VERDICT: ON_TIME</div>
-        <h3 class="outcome-title">Seamless Delivery</h3>
-        <p class="outcome-desc">The evidence confirms the shipment arrived within the agreed window. No penalty applies.</p>
-        <div class="outcome-result">
-          <div class="result-label">Remedy Applied</div>
-          <div class="result-value" style="color: var(--green);">100% Released</div>
-          <div style="font-size: 14px; margin-top: 4px;">73,950 PEN to Exporter</div>
+    <div class="section-label">Trade Lifecycle</div>
+    <h2>From invoice to settlement</h2>
+    <p class="lifecycle-sub">Five steps. One contract.</p>
+
+    <div class="tl-steps">
+      <div class="tl-step">
+        <div class="tl-left"><div class="tl-dot s1">1</div><div class="tl-spine"></div></div>
+        <div class="tl-body">
+          <div class="tl-title">Invoice created</div>
+          <div class="tl-desc">The trade terms are registered on-chain. A Bolivian exporter invoices <strong>150,000 BOB</strong> to a Peruvian importer.</div>
         </div>
-        <a href="https://internetcourt.org/cases/0xb4700D67d6cBeF18011021A2A20389ea88753234" target="_blank" class="docket-link">
-          Court Docket ↗
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        </a>
       </div>
 
-      <!-- Outcome 2: Late -->
-      <div class="outcome-card">
-        <div class="outcome-badge late">VERDICT: LATE_1_4</div>
-        <h3 class="outcome-title">Minor Delay</h3>
-        <p class="outcome-desc">GenLayer determines a 1-4 day delay. The contract automatically triggers a 0.5% late fee.</p>
-        <div class="outcome-result">
-          <div class="result-label">Remedy Applied</div>
-          <div class="result-value" style="color: var(--red);">99.5% Released</div>
-          <div style="font-size: 14px; margin-top: 4px;">73,580.25 PEN to Exporter</div>
+      <div class="tl-step">
+        <div class="tl-left"><div class="tl-dot s2">2</div><div class="tl-spine"></div></div>
+        <div class="tl-body">
+          <div class="tl-title">Benchmark locked</div>
+          <div class="tl-desc">GenLayer validators agree on the benchmark rate. The locked benchmark is <strong>0.493 PEN / BOB</strong>.</div>
         </div>
-        <a href="https://internetcourt.org/cases/0xbd0dB046A913817522B595CFEb922D5E2aad4268" target="_blank" class="docket-link">
-          Court Docket ↗
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        </a>
       </div>
 
-      <!-- Outcome 3: Undetermined -->
-      <div class="outcome-card">
-        <div class="outcome-badge undetermined">VERDICT: UNDETERMINED</div>
-        <h3 class="outcome-title">Ambiguous Evidence</h3>
-        <p class="outcome-desc">The evidence provided is insufficient or contradictory. The case moves to manual arbitration.</p>
-        <div class="outcome-result">
-          <div class="result-label">Status</div>
-          <div class="result-value" style="color: var(--amber);">Manual Review</div>
-          <div style="font-size: 14px; margin-top: 4px;">Funds held in escrow</div>
+      <div class="tl-step">
+        <div class="tl-left"><div class="tl-dot s3">3</div><div class="tl-spine"></div></div>
+        <div class="tl-body">
+          <div class="tl-title">Conditional settlement funded</div>
+          <div class="tl-desc">The contract computes the settlement amount. 150,000 × 0.493 = <strong>73,950 PEN</strong>.<br/><br/>The importer pre-funds conditional escrow in PEN. Release depends on shipment status.</div>
         </div>
-        <a href="https://internetcourt.org/cases/0xe50A8F382B3B751dBd7053963EbaBB59916f3788" target="_blank" class="docket-link">
-          Court Docket ↗
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        </a>
+      </div>
+
+      <div class="tl-step">
+        <div class="tl-left"><div class="tl-dot s4">4</div><div class="tl-spine"></div></div>
+        <div class="tl-body">
+          <div class="tl-title">Shipment checked</div>
+          <div class="tl-desc">If shipment is uncontested, settlement proceeds normally.<br/><br/>If shipment timing is contested, GenLayer evaluates the shipment evidence and classifies the outcome.</div>
+        </div>
+      </div>
+
+      <div class="tl-step">
+        <div class="tl-left"><div class="tl-dot s5">5</div></div>
+        <div class="tl-body">
+          <div class="tl-title">Outcome applied</div>
+          <div class="tl-desc">The contract applies the pre-agreed economic consequence: full release, partial adjustment, cancellation, or manual review.</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 6. WHY GENLAYER -->
+
+<!-- ═══════ WHY GENLAYER MATTERS HERE ═══════ -->
 <section class="why-section">
   <div class="container">
-    <div class="why-grid">
-      <div class="why-content">
-        <span class="section-label">04 / The Technology</span>
-        <h2>Why GenLayer?</h2>
-        <p>Smart contracts are great at math, but blind to the world. GenLayer provides the bridge for <strong>non-deterministic</strong> facts.</p>
-        <p>By using Intelligent Contracts, we can combine mathematical certainty with human-like judgment for complex disputes.</p>
+    <div class="section-label">Why GenLayer matters here</div>
+    <h2>Why GenLayer matters here</h2>
+    <div class="why-intro">
+      The benchmark is not the hard part.<br/>
+      <strong>The hard part is what happens when the trade can no longer continue because the evidence is disputed.</strong>
+    </div>
+
+    <div class="why-cards">
+      <div class="why-card can">
+        <div class="why-card-label">What a normal oracle can do</div>
+        <div class="why-card-text">Return a benchmark rate once the source and timing are defined.</div>
       </div>
-      <div class="boundary-viz">
-        <div class="viz-box">
-          <div class="viz-label">Deterministic</div>
-          <div class="viz-text">Locking an FX benchmark. Any oracle can return a number.</div>
+      <div class="why-card cannot">
+        <div class="why-card-label">What a normal oracle cannot do</div>
+        <div class="why-card-text">Resolve which shipment record controls when real-world evidence conflicts.</div>
+      </div>
+      <div class="why-card does">
+        <div class="why-card-label">What GenLayer does</div>
+        <div class="why-card-text">Evaluates the disputed shipment evidence and returns a machine-usable verdict so the same contract can continue automatically.</div>
+      </div>
+    </div>
+
+    <div class="why-closing">
+      Late payment changes settlement timing.<br/>
+      Late shipment changes whether and how much escrowed funds should be released.
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════ SHIPMENT OUTCOMES ═══════ -->
+<section class="outcomes">
+  <div class="container">
+    <div class="section-label">Shipment outcomes</div>
+    <h2>Representative shipment outcomes</h2>
+    <p class="outcomes-intro">These are parallel example deployments of the same contract pattern, each with different shipment evidence and a different economic consequence.</p>
+
+    <div class="outcomes-grid">
+      <div class="outcome-card ontime">
+        <div class="outcome-label">On time</div>
+        <div class="outcome-title">Shipment arrived on time</div>
+        <div class="outcome-desc">The evidence confirms the shipment crossed the border within the agreed window. No penalty applies.</div>
+        <div class="outcome-result">
+          <div class="outcome-result-label">Outcome</div>
+          <div class="outcome-result-value" style="color:var(--green);">100% released</div>
+          <div class="outcome-result-detail">73,950 PEN transferred to exporter</div>
         </div>
-        <div class="viz-box">
-          <div class="viz-label">Non-Deterministic</div>
-          <div class="viz-text">Classifying a shipment date from conflicting PDFs and logs.</div>
+        <a href="https://internetcourt.org/cases/0xb4700D67d6cBeF18011021A2A20389ea88753234" target="_blank" class="docket-link">Internet Court Docket ↗</a>
+      </div>
+
+      <div class="outcome-card late">
+        <div class="outcome-label">Minor delay</div>
+        <div class="outcome-title">Shipment arrived 1–4 days late</div>
+        <div class="outcome-desc">GenLayer classified the shipment as a minor delay. The contract applies the pre-agreed adjustment automatically.</div>
+        <div class="outcome-result">
+          <div class="outcome-result-label">Outcome</div>
+          <div class="outcome-result-value" style="color:var(--red);">99.5% released</div>
+          <div class="outcome-result-detail">73,580.25 PEN to exporter · 369.75 PEN returned to importer</div>
         </div>
-        <div class="viz-box highlight">
-          <div class="viz-label">GenLayer Solution</div>
-          <div class="viz-text">One contract, one engine. Automated resolution for disputed facts.</div>
+        <a href="https://internetcourt.org/cases/0xbd0dB046A913817522B595CFEb922D5E2aad4268" target="_blank" class="docket-link">Internet Court Docket ↗</a>
+      </div>
+
+      <div class="outcome-card unclear">
+        <div class="outcome-label">Evidence unclear</div>
+        <div class="outcome-title">Evidence insufficient or conflicting</div>
+        <div class="outcome-desc">GenLayer could not determine the crossing date from the submitted evidence. The case moves to manual review.</div>
+        <div class="outcome-result">
+          <div class="outcome-result-label">Outcome</div>
+          <div class="outcome-result-value" style="color:var(--amber);">Manual review</div>
+          <div class="outcome-result-detail">73,950 PEN held in escrow · 14-day arbitrator window</div>
         </div>
+        <a href="https://internetcourt.org/cases/0xe50A8F382B3B751dBd7053963EbaBB59916f3788" target="_blank" class="docket-link">Internet Court Docket ↗</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 7. PROOF STRIP -->
-<div class="proof-strip">
+
+<!-- ═══════ PROOF STRIP ═══════ -->
+<section class="proof-strip" style="border-top:1px solid var(--border);padding:36px 0;">
   <div class="container">
     <div class="proof-inner">
-      <div class="proof-info">
-        <span>Basescan: <a href="https://sepolia.basescan.org/address/0xD7929535b7Fe825cbb51B5CE70a3356aCc64E2Fa" target="_blank" style="color: #fff;">0xD792...E2Fa</a></span>
-        <span>·</span>
-        <span>GenLayer Studionet Active</span>
+      <div class="proof-left">
+        <div class="proof-dot"></div>
+        Settled on-chain · Internet Court verdict on GenLayer
       </div>
-      <a href="proof.html" class="proof-link">Inspect Architecture →</a>
+      <a href="proof.html" class="proof-link">Inspect everything under the hood →</a>
     </div>
   </div>
-</div>
+</section>
 
-<!-- FOOTER -->
+
+<!-- ═══════ FOOTER ═══════ -->
 <footer>
   <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <div class="logo">
-          <span class="logo-chip">FX</span> Trade Finance × GenLayer
-        </div>
-        <p>A prototype demonstrating GenLayer as a coordination layer for FX-settled cross-border invoices.</p>
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-logo"><span style="background:var(--card);border-radius:6px;padding:2px 8px;font-family:'DM Mono',monospace;font-size:11px;">FX</span> Trade Finance × GenLayer</div>
+        <div class="footer-note">A prototype demonstrating GenLayer as a coordination layer for FX-settled cross-border invoices. Deployed on Base Sepolia + GenLayer Studionet.</div>
       </div>
-      <div class="footer-col">
-        <h4>Tech</h4>
-        <ul class="footer-links">
-          <li><a href="https://genlayer.com" target="_blank">GenLayer Website</a></li>
-          <li><a href="https://docs.genlayer.com" target="_blank">Documentation</a></li>
-          <li><a href="https://sepolia.basescan.org" target="_blank">Base Sepolia</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Project</h4>
-        <ul class="footer-links">
-          <li><a href="https://github.com/acastellana/trade-finance-genlayer" target="_blank">GitHub Repository</a></li>
-          <li><a href="proof.html">Technical Details</a></li>
-          <li><a href="index.html">Interactive Demo</a></li>
-        </ul>
+      <div class="footer-links">
+        <a href="https://genlayer.com" target="_blank">GenLayer</a>
+        <a href="https://github.com/acastellana/trade-finance-genlayer" target="_blank">GitHub ↗</a>
+        <a href="proof.html">Technical details</a>
       </div>
     </div>
-    <div class="footer-bottom">
-      <span>© 2026 Trade Finance Demo</span>
-      <span>Build: ba44f9db · Europe/Madrid</span>
-    </div>
+    <div class="footer-bottom">Trade Finance × GenLayer · 2026</div>
   </div>
 </footer>
 
